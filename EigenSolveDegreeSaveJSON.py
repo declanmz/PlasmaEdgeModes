@@ -76,7 +76,7 @@ mulist = [mu(xi) for xi in xlist]
 k0min = -4
 k0max = 4
 thetadegs = 38
-Nk = 2
+Nk = 100
 kzoffset = 0
 
 k0list = np.linspace(k0min,k0max,Nk)
