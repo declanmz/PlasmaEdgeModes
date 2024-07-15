@@ -216,7 +216,7 @@ Emax_list = []
 
 pbar = tqdm(total=Nk, desc=f"{thetadegs}deg Computation", position=0)
 for k0 in k0list:
-    evals, Eavg, Estd, Emax = CutSortedEigensolve(k0, thetadegs, kzoffset, wmin, wmax, directory)
+    evals, Eavg, Estd, Emax = CutSortedEigensolve(k0, kzoffset, wmin, wmax, directory)
 
     evals_list.append(evals)
     Eavg_list.append(Eavg)
