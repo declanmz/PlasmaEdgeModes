@@ -6,6 +6,20 @@ from tqdm import tqdm
 import cmath
 import json
 
+#needed to encode complex numbers into JSON
+class TypeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, complex):
+            return {"real": obj.real, "imag": obj.imag}
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+def as_complex(dct):
+    if 'real' in dct and 'imag' in dct:
+        return complex(dct['real'], dct['imag'])
+    return dct
+
+
 # TODO:
 # - Put all variables into dictionary, store as JSON
 
@@ -62,7 +76,7 @@ mulist = [mu(xi) for xi in xlist]
 k0min = -4
 k0max = 4
 thetadegs = 38
-Nk = 100
+Nk = 2
 kzoffset = 0
 
 k0list = np.linspace(k0min,k0max,Nk)
@@ -154,39 +168,46 @@ def EAvgStdMaxList(evecMatrix):
     
     return np.array(Eavg), np.array(Estd), np.array(Emax)
 
-def CutSortedEigensolve(k0mag, thetadegs, kzoffset, wmin, wmax, directory):
+def CutSortedEigensolve(k0mag, kzoffset, wmin, wmax, directory):
+    pbarInner = tqdm(total=4, desc=f"Eigensolve {k0mag}", position=1, leave=False)
     kmag = wp0 * k0mag / c
     ky = kmag * np.sin(theta)
     kz = kmag * np.cos(theta) + kzoffset
 
     eigsys = np.linalg.eig(BuildMatrix(ky, kz))
+    pbarInner.update(1)
 
     #sort in order of increasing eigenvalue
     sorted_indices = eigsys[0].argsort()
     sorted_evals = eigsys[0][sorted_indices]
     sorted_evecs = eigsys[1][:,sorted_indices]
+    pbarInner.update(1)
 
     #cutoff eigenvalues below wmin and above wmax
     idmin = np.abs(sorted_evals - wmin).argmin()
     idmax = np.abs(sorted_evals - wmax).argmin()
     cutsort_evals = sorted_evals[idmin:idmax]
     cutsort_evecs = sorted_evecs[:,idmin:idmax]
+    pbarInner.update(1)
 
     #find Emax, Eavg, and Estd
     cutsort_Eavg, cutsort_Estd, cutsort_Emax = EAvgStdMaxList(cutsort_evecs)
+    pbarInner.update(1)
 
     #save evecs to json
-    save_evecs = cutsort_evecs.tolist()
-    file = directory + '/EvecData_CutSort/' + f'{k0mag:.5f}'.replace('.','_') + f'k0_{thetadegs}deg.json' #can't have decimal point in file name
-    with open(file, 'w') as f: 
-        json.dump(save_evecs, f)
+    # save_evecs = cutsort_evecs.tolist()
+    # pbarInner.update(1)
+    # file = directory + '/EvecData_CutSort/evec_' + f'{k0mag:.5f}'.replace('.','_') + f'k0_{thetadegs}deg.json' #can't have decimal point in file name
+    # with open(file, 'w+') as f: 
+    #     json.dump(save_evecs, f, cls=ComplexEncoder)
+    # pbarInner.update(1)
 
     return cutsort_evals, cutsort_Eavg, cutsort_Estd, cutsort_Emax
 
 
 
 # ---------- Run For Specific Degree ----------
-directory = './SetupOG'
+directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/SetupOG'
 
 evals_list = []
 Eavg_list = []
@@ -204,7 +225,6 @@ for k0 in k0list:
 
     pbar.update(1)
 
-print('Saving... ')
 save_dict = {
     'fp0':fp0,
     'wp0':wp0,
@@ -233,9 +253,9 @@ save_dict = {
     'Emax_list':Emax_list
 }
 
-dict_file = directory + f'/{thetadegs}deg_CutSort'
+dict_file = directory + f'/{thetadegs}deg_CutSort.json'
 with open(dict_file, 'w') as f: 
-    json.dump(save_dict, f)
+    json.dump(save_dict, f, cls=TypeEncoder)
 
 print('Done.')
 #next is to write the code to run this function over all k0 for a certain degree, then save json dictionary
