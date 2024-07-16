@@ -45,12 +45,12 @@ def mu(x): #relative permeability of background medium (not including plasma)
 # ---------- ky kz Line at Specific Angle ----------
 k0min = -2.5
 k0max = 2.5
-Nk = 2
+Nk = 100
 kzoffset = 0
 
 
-directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Testing'
-thetadegsList = np.arange(0,30,10)
+directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/SetupOG_ReducedRange'
+thetadegsList = np.arange(0,40,2)
 
 filterName = 'FilterA'
 filter_posAvgBound = 15e-3
