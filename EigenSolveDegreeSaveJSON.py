@@ -20,9 +20,6 @@ def as_complex(dct):
     return dct
 
 
-# TODO:
-# - Put all variables into dictionary, store as JSON
-
 # ---------- Define Constants ----------
 e = 1.6e-19 #C - charge on electron
 m_e = 9.1094e-31 #kg - mass of electron
@@ -250,7 +247,11 @@ save_dict = {
     'evals_list':evals_list,
     'Eavg_list':Eavg_list,
     'Estd_list':Estd_list,
-    'Emax_list':Emax_list
+    'Emax_list':Emax_list,
+    'filter_posAvgBound':None,
+    'filter_negAvgBound':None,
+    'filter_maxStd':None,
+    'filter_EmaxMin':None
 }
 
 dict_file = directory + f'/{thetadegs}deg_CutSort.json'
