@@ -247,11 +247,7 @@ save_dict = {
     'evals_list':evals_list,
     'Eavg_list':Eavg_list,
     'Estd_list':Estd_list,
-    'Emax_list':Emax_list,
-    'filter_posAvgBound':None,
-    'filter_negAvgBound':None,
-    'filter_maxStd':None,
-    'filter_EmaxMin':None
+    'Emax_list':Emax_list
 }
 
 dict_file = directory + f'/{thetadegs}deg_CutSort.json'
