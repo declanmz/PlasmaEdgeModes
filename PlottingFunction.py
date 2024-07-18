@@ -30,9 +30,10 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'SetupOG_ReducedRange'
+setupFolder = 'Setup_NoQuartzA'
 filterName = 'FilterA'
-thetadegs = 38
+thetadegs = 10
+sizeScaling = 1
 
 #region ----- Load JSON Data -----
 file = f'{baseDirectory}/{setupFolder}/{thetadegs}deg_{filterName}.json'
@@ -148,7 +149,6 @@ if plotPreset == 1: #Dispersion Plot with Text Info
     plotWgIntersection = True
 
     plotTextInfo = True
-    
 
 if plotDispersion: #Properties of the Dispersion Plot + Plotting Itself
     # --- Dispersion Plotting Properties ---
@@ -168,7 +168,7 @@ if plotDispersion: #Properties of the Dispersion Plot + Plotting Itself
     match dispCmap_case:
         case 'Eavg':
             dispCmap_values = Eavg_list
-            dispCmap_norm = plt.Normalize(-5e-3, 15e-3)
+            dispCmap_norm = plt.Normalize(-2.5e-3 * sizeScaling, 7.5e-3*sizeScaling)
             dispColorbarLabel = 'E Field Centroid along x-axis [m]'
         case _:
             Exception("Improper Dispersion Cmap Case")
