@@ -33,8 +33,8 @@ filterName = 'FilterA'
 thetadegs = 39
 sizeScaling = 1
 
-kmag_close = 170
-w_close_n = 3.27
+kmag_close = 300
+w_close_n = 3
 
 #region ----- Load JSON Data -----
 file = f'{baseDirectory}/{setupFolder}/{thetadegs}deg_{filterName}.json'
@@ -140,15 +140,9 @@ w_waveguide_n = dispersionload[:,1] * 2 * np.pi * 1e9 / wr
 #endregion
 
 # ----- Choose Preset for Layout -----
-plotPreset = 2
+plotPreset = 1
 
 #region --- Preset Variables ---
-plotDispersion = False
-plotBulkModes = False
-plotLightLine = False
-plotWgLine = False
-plotWgIntersection = False
-
 plotEigenvectors = False
 plotEigenvectorX = False
 exlet = 'x'
@@ -161,120 +155,14 @@ plotTextInfo = False
 #endregion
 
 if plotPreset == 1: #Dispersion Plot with Text Info
-    fig, axs = plt.subplot_mosaic([['e', 'e', 'e', 'e', 't']], figsize=(12, 7))
-
-    plotDispersion = True
-    plotBulkModes = True
-    plotLightLine = True
-    plotWgLine = True
-    plotWgIntersection = True
-
-    plotTextInfo = True
-
-if plotPreset == 2: #Dispersion Plot with Text Info
-    fig, axs = plt.subplot_mosaic([['e', 'e', 'e', 'x', 'x', 't'],
-                                   ['e', 'e', 'e', 'y', 'y', 't'],
-                                   ['e', 'e', 'e', 'z', 'z', 't']], figsize=(20, 10))
-
-    plotDispersion = True
-    plotBulkModes = True
-    plotLightLine = True
-    plotWgLine = True
-    plotWgIntersection = True
+    fig, axs = plt.subplot_mosaic([['x'], ['y'], ['z']], figsize=(12, 7))
 
     plotEigenvectors = True
     plotEigenvectorX = True
     plotEigenvectorY = True
     plotEigenvectorZ = True
 
-    plotTextInfo = True
-
-if plotDispersion: #Properties of the Dispersion Plot + Plotting Itself
-    # --- Dispersion Plotting Properties ---
-    axs['e'].set_title('Eigenvalues')
-    axs['e'].set_xlabel(r'k [$m^{-1}$]', size=12)
-    axs['e'].set_ylabel(r'$f$ [GHz]', size=12) #FOR WHEN fr = 1GHz
-    axs['e'].grid(color='gray', linestyle='dashed', alpha=0.2)
-
-    overwrite_xlim = [None, None] #Values in terms of 1/m
-    overwrite_ylim = [None, None] #Values in terms of wr
-
-    dotsize = 10
-
-    dispCmap = 'coolwarm'
-    dispColorbarOrientation = 'vertical'
-    dispCmap_case = 'Eavg'
-    match dispCmap_case:
-        case 'Eavg':
-            dispCmap_values = Eavg_list
-            dispCmap_norm = plt.Normalize(-2.5e-3 * sizeScaling, 7.5e-3*sizeScaling)
-            dispColorbarLabel = 'E Field Centroid along x-axis [m]'
-        case _:
-            Exception("Improper Dispersion Cmap Case")
-
-    #region --- Dispersion Plotting Backend ---
-    for n in range(len(klist)):
-        dispScatter = axs['e'].scatter([klist[n] for i in evals_list_n[n]], evals_list_n[n].real, s=dotsize, 
-                        c=dispCmap_values[n], norm=dispCmap_norm, cmap=dispCmap)
-    
-    if overwrite_xlim[0] == None:
-        overwrite_xlim[0] = klist[0]
-    if overwrite_xlim[1] == None:
-        overwrite_xlim[1] = klist[-1]
-    if overwrite_ylim[0] == None:
-        overwrite_ylim[0] = wmin/wr
-    if overwrite_ylim[1] == None:
-        overwrite_ylim[1] = wmax/wr
-    axs['e'].set_xlim(overwrite_xlim)
-    axs['e'].set_ylim(overwrite_ylim)
-
-    dispCbar = fig.colorbar(dispScatter, ax=axs['e'], orientation=dispColorbarOrientation)
-    dispCbar.set_label(dispColorbarLabel)
-    #endregion
-
-    if plotBulkModes:
-        for i in range(len(bulkLines_n)):
-            axs['e'].plot(bulk_kline, bulkLines_n[i], color='black', alpha=0.5)
-
-    if plotLightLine:
-        axs['e'].plot(bulk_kline, lightline_n, color='yellow')
-
-    if plotWgLine:
-        wgLineColor = 'green'
-        axs['e'].plot(k_waveguide, w_waveguide_n, color=wgLineColor)
-        axs['e'].plot(-k_waveguide, w_waveguide_n, color=wgLineColor)
-
-    if plotWgIntersection:
-        wgIntersectionDotSize = 15
-        wgCmap = 'gist_rainbow'
-        wgColorbarOrientation = 'vertical'
-        wgCmap_case = 'Estd'
-        match wgCmap_case:
-            case 'Eavg':
-                wgNegCmap_values = c*wgNeg_EavgList_n/wr
-                wgPosCmap_values = c*wgPos_EavgList_n/wr
-                wgNorm = plt.Normalize(7.5e-3,15e-3)
-                wgColorbarLabel = 'E Field Centroid Along x-axis [m]'
-            case 'Estd':
-                wgNegCmap_values = c*wgNeg_EstdList_n/wr
-                wgPosCmap_values = c*wgPos_EstdList_n/wr
-                wgNorm = plt.Normalize(.001, .01)
-                wgColorbarLabel = 'E Field Standard Deviation Along x-axis [m]'
-            case 'Emax': #bad measure to go off of
-                wgNegCmap_values = wgNeg_EmaxList_n
-                wgPosCmap_values = wgPos_EmaxList_n
-                wgNorm = plt.Normalize(0.03,0.12)
-                wgColorbarLabel = 'E Field Maximum Value [m]'
-            case _:
-                Exception("Improper Waveguide Cmap Case")
-        #region --- Waveguide Intersection Plotting Backend ---
-        negScatter = axs['e'].scatter(wgNeg_klist, wgNeg_evalList_n.real, s=wgIntersectionDotSize,
-                        c=wgNegCmap_values, norm=wgNorm, cmap=wgCmap)
-        posScatter = axs['e'].scatter(wgPos_klist, wgPos_evalList_n.real, s=wgIntersectionDotSize,
-                        c=wgPosCmap_values, norm=wgNorm, cmap=wgCmap)
-        wgCbar = fig.colorbar(posScatter, ax=axs['e'], orientation=wgColorbarOrientation)
-        wgCbar.set_label(wgColorbarLabel)
-        #endregion
+    plotTextInfo = False
 
 
 if plotEigenvectors:
@@ -282,7 +170,7 @@ if plotEigenvectors:
     xticklist = np.linspace(-L, L, 7)
     evec_norm = np.abs(np.asarray(evecdict['Ex'])).max()
     evec_phase = np.angle(np.asarray(evecdict['Ex']).max())
-    evec_mult = np.exp(-1j * evec_phase)
+    evec_mult = -1*np.exp(-1j * evec_phase)
 
     common_evecList = []
 
@@ -338,20 +226,15 @@ if plotEigenvectors:
             if eplist[n] < 1:
                 axs[elet].add_patch(patches.Rectangle((xlist[n], -1.2), deltax, 2.4, color='silver', alpha=1, ec=None))
 
-    if plotDispersion:
-        axs['e'].scatter(evecdict['kmag'], evecdict['eval_returned_n'], marker='x', s=100, color='black', alpha=0.4)
-
-
 if plotTextInfo:
     text = rf"""
     $\theta$ = {thetadegs}$^\circ$
     $f_p$ = {fp0/1e9} GHz
     $B_0$ = 87 mT
-    shown k = {evecdict['kmag']:.3f} [$1/m$]
-    shown $f$ = {(evecdict['eval_returned_n']):.3f} [GHz]
     """
     axs['t'].text(0, 1, text, va='top', ha='left', fontsize=12)
     axs['t'].axis('off')
+
 
 plt.tight_layout(pad=2.0)
 plt.show()

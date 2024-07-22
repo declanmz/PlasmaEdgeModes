@@ -129,11 +129,11 @@ def findWgIntersection_UpdateJSON(file, wgEpsilon_n, thetadegs):
     print('Waveguide Intersection Done.')
 
 
-#execute code for particular file
-directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Testing'
-thetadegs = 39
-filterName = 'FilterA'
-file = directory + f'/{thetadegs}deg_{filterName}.json'
+# #execute code for particular file
+# directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Testing'
+# thetadegs = 39
+# filterName = 'FilterA'
+# file = directory + f'/{thetadegs}deg_{filterName}.json'
 
-wgEpsilon = 1
-findWgIntersection_UpdateJSON(file, wgEpsilon, thetadegs)
+# wgEpsilon = 1
+# findWgIntersection_UpdateJSON(file, wgEpsilon, thetadegs)

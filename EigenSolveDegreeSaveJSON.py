@@ -224,48 +224,48 @@ def EigenSolveDegree_SaveJSON(directory, fr, B0, L, N, fmin, fmax, wp, ep, kmin,
     with open(dict_file, 'w') as f: 
         json.dump(save_dict, f, cls=TypeEncoder)
 
-# ---------- Setup parameters ----------
-scaling = 1
+# # ---------- Setup parameters ----------
+# scaling = 1
 
-fp0 = 10e9 #10GHz
-B0 = 87e-3 #mT
-L = 15e-3 * scaling
-N = 100 #300 for good results
-fr = 1e9 #1 GHz
-fmin = 0.5 * fr
-fmax = 15 * fr
+# fp0 = 10e9 #10GHz
+# B0 = 87e-3 #mT
+# L = 15e-3 * scaling
+# N = 100 #300 for good results
+# fr = 1e9 #1 GHz
+# fmin = 0.5 * fr
+# fmax = 15 * fr
 
-wp0 = 2*np.pi*fp0
+# wp0 = 2*np.pi*fp0
 
-# ---------- Plasma Density Profile ----------
-Lscale = 2e-3 * scaling#1mm
-qstart = 6.5e-3 * scaling #mm
-offset = qstart - 1.25e-3 * scaling
-qthickness = 1e-3 #1mm
+# # ---------- Plasma Density Profile ----------
+# Lscale = 2e-3 * scaling#1mm
+# qstart = 6.5e-3 * scaling #mm
+# offset = qstart - 1.25e-3 * scaling
+# qthickness = 1e-3 #1mm
 
-def wp(x): #plasma frequency as a function of x
-    if np.abs(x) >= qstart:
-        return 0
-    return wp0*0.5*(np.tanh((x+offset)/Lscale) - np.tanh((x-offset)/Lscale))
-
-# def wp(x): #quadratic density profile
+# def wp(x): #plasma frequency as a function of x
 #     if np.abs(x) >= qstart:
 #         return 0
-#     return (-wp0/(qstart**2))*(x-qstart)*(x+qstart)
+#     return wp0*0.5*(np.tanh((x+offset)/Lscale) - np.tanh((x-offset)/Lscale))
 
-def ep(x): #relative permitivity of background medium (not including plasma)
-    if np.abs(x) > qstart and np.abs(x) < qstart + qthickness:
-        return 4
-    return 1
+# # def wp(x): #quadratic density profile
+# #     if np.abs(x) >= qstart:
+# #         return 0
+# #     return (-wp0/(qstart**2))*(x-qstart)*(x+qstart)
 
-# ---------- ky kz Line at Specific Angle ----------
-kmin = -500 #1/m
-kmax = 500 #1/m
-Nk = 20 #100 for good results
-kzoffset = 0
+# def ep(x): #relative permitivity of background medium (not including plasma)
+#     if np.abs(x) > qstart and np.abs(x) < qstart + qthickness:
+#         return 4
+#     return 1
 
-directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Testing'
-thetadegs = 39
+# # ---------- ky kz Line at Specific Angle ----------
+# kmin = -500 #1/m
+# kmax = 500 #1/m
+# Nk = 20 #100 for good results
+# kzoffset = 0
 
-# EigenSolveDegree_SaveJSON(directory, fp0, B0, L, N, w0min, w0max, wp, ep, mu, k0min, k0max, thetadegs, Nk, kzoffset)
-EigenSolveDegree_SaveJSON(directory, fr, B0, L, N, fmin, fmax, wp, ep, kmin, kmax, thetadegs, Nk, kzoffset, fp0)
+# directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Testing'
+# thetadegs = 39
+
+# # EigenSolveDegree_SaveJSON(directory, fp0, B0, L, N, w0min, w0max, wp, ep, mu, k0min, k0max, thetadegs, Nk, kzoffset)
+# EigenSolveDegree_SaveJSON(directory, fr, B0, L, N, fmin, fmax, wp, ep, kmin, kmax, thetadegs, Nk, kzoffset, fp0)

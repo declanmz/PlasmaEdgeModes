@@ -60,14 +60,14 @@ def filterEigJSON(file, filterName, directory, filter_posAvgBound, filter_negAvg
     print('Filtering Done.')
 
 
-directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Testing'
-thetadegs = 39
-file = directory + f'/{thetadegs}deg_Unfiltered.json'
+# directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Testing'
+# thetadegs = 39
+# file = directory + f'/{thetadegs}deg_Unfiltered.json'
 
-filterName = 'FilterA'
-filter_posAvgBound = 15e-3
-filter_negAvgBound = -2.5e-3
-filter_maxStd = 1 #4e-3
-filter_EmaxMin = 1e-5
+# filterName = 'FilterA'
+# filter_posAvgBound = 15e-3
+# filter_negAvgBound = -2.5e-3
+# filter_maxStd = 1 #4e-3
+# filter_EmaxMin = 1e-5
 
-filterEigJSON(file, filterName, directory, filter_posAvgBound, filter_negAvgBound, filter_maxStd, filter_EmaxMin, thetadegs)
+# filterEigJSON(file, filterName, directory, filter_posAvgBound, filter_negAvgBound, filter_maxStd, filter_EmaxMin, thetadegs)
