@@ -6,7 +6,7 @@ import cmath
 import json
 
 from JSONHelpers import TypeEncoder, as_complex
-from EigenSolveDegreeSaveJSON import BuildMatrix
+from PlasmaEdgeModes.V1.EigenSolveDegreeSaveJSON import BuildMatrix
 
 def EvecSparseEigensolve_toJSON(file, save_directory, k0mag_close, w0_close):
     #Define Constants

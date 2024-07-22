@@ -1,7 +1,7 @@
 import numpy as np
 
-from EigenSolveDegreeSaveJSON import EigenSolveDegree_SaveJSON
-from EigenJsonFiltering import filterEigJSON
+from PlasmaEdgeModes.V1.EigenSolveDegreeSaveJSON import EigenSolveDegree_SaveJSON
+from PlasmaEdgeModes.V1.EigenJsonFiltering import filterEigJSON
 from WaveguideIntersectionToJSON import findWgIntersection_UpdateJSON
 
 # ---------- Define Constants ----------
@@ -14,29 +14,29 @@ ep_0 = 8.854e-12 #F/m - permitivity of free space
 c = 3e8 #m/s - speed of light
 
 # ---------- Setup parameters ----------
-fp0 = 10e9 #10GHz
+# NoQuartzA has no quartz, a smooth plasma profile,
+# lower plasma frequency of 6 GHz, and the actually correct length
+
+fp0 = 6e9 #10GHz
 B0 = 87e-3 #mT
-L = 15e-3 * 2 #7.5 mm
-N = 300
+L = 15e-3
+N = 300 #300
 w0min = 0.05
 w0max = 1.5
 
 wp0 = 2*np.pi*fp0
 
 # ---------- Plasma Density Profile ----------
-Lscale = 4e-3 #1mm
-qstart = 6.5e-3 *2 #mm
-offset = qstart - 2.5e-3
-qthickness = 1e-3 #1mm
+Lscale = 2e-3 #mm
+# qstart = 6.5e-3 *2 #mm
+# offset = qstart - 2.5e-3
+# qthickness = 1e-3 #1mm
+offset = 7.5e-3
 
 def wp(x): #plasma frequency as a function of x
-    if np.abs(x) >= qstart:
-        return 0
     return wp0*0.5*(np.tanh((x+offset)/Lscale) - np.tanh((x-offset)/Lscale))
 
 def ep(x): #relative permitivity of background medium (not including plasma)
-    if np.abs(x) > qstart and np.abs(x) < qstart + qthickness:
-        return 4
     return 1
     
 def mu(x): #relative permeability of background medium (not including plasma)
@@ -45,16 +45,16 @@ def mu(x): #relative permeability of background medium (not including plasma)
 # ---------- ky kz Line at Specific Angle ----------
 k0min = -2.5
 k0max = 2.5
-Nk = 100
+Nk = 100 #100
 kzoffset = 0
 
 
-directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/SetupOG_ReducedRange'
-thetadegsList = np.arange(0,40,2)
+directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Setup_NoQuartzA'
+thetadegsList = np.arange(0,40,2) #2
 
 filterName = 'FilterA'
 filter_posAvgBound = 15e-3
-filter_negAvgBound = -5e-3
+filter_negAvgBound = -2.5e-3
 filter_maxStd = 1 #4e-3
 filter_EmaxMin = 1e-5
 

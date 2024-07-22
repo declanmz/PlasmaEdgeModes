@@ -22,29 +22,26 @@ def filterEigJSON(file, filterName, directory, filter_posAvgBound, filter_negAvg
     with open(file, 'r') as f:
         jsondata = json.load(f, object_hook=as_complex)
 
-    wr = jsondata['wr']
     thetadegsJSON = jsondata['thetadegs']
     if thetadegs != thetadegsJSON:
         raise Exception("Thetadegs mismatch")
 
-    evals_list_n = list(map(np.array, jsondata['evals_list_n']))
-    Eavg_list_n = list(map(np.array, jsondata['Eavg_list_n']))
-    Eavg_list = [c*val/wr for val in Eavg_list_n]
-    Estd_list_n = list(map(np.array, jsondata['Estd_list_n']))
-    Estd_list = [c*val/wr for val in Estd_list_n]
-    Emax_list_n = list(map(np.array, jsondata['Emax_list_n']))
+    evals_list = list(map(np.array, jsondata['evals_list']))
+    Eavg_list = list(map(np.array, jsondata['Eavg_list']))
+    Estd_list = list(map(np.array, jsondata['Estd_list']))
+    Emax_list = list(map(np.array, jsondata['Emax_list']))
 
     # ---------- Filtering ----------
     for i in range(jsondata['Nk']):
         EavgFilteredIndices = np.where((Eavg_list[i].real < filter_posAvgBound) & (Eavg_list[i].real > filter_negAvgBound))
         EstdFilteredIndices = np.where((Estd_list[i].real < filter_maxStd))
-        EmaxFilteredIndices = np.where((Emax_list_n[i].real > filter_EmaxMin))
+        EmaxFilteredIndices = np.where((Emax_list[i].real > filter_EmaxMin))
         filteredIndices = np.intersect1d(np.intersect1d(EavgFilteredIndices, EstdFilteredIndices), EmaxFilteredIndices)
 
-        jsondata['evals_list_n'][i] = evals_list_n[i][filteredIndices]
-        jsondata['Eavg_list_n'][i] = Eavg_list_n[i][filteredIndices]
-        jsondata['Estd_list_n'][i] = Estd_list_n[i][filteredIndices]
-        jsondata['Emax_list_n'][i] = Emax_list_n[i][filteredIndices]
+        jsondata['evals_list'][i] = evals_list[i][filteredIndices]
+        jsondata['Eavg_list'][i] = Eavg_list[i][filteredIndices]
+        jsondata['Estd_list'][i] = Estd_list[i][filteredIndices]
+        jsondata['Emax_list'][i] = Emax_list[i][filteredIndices]
 
 
     # ---------- Save As New JSON ----------
@@ -60,14 +57,14 @@ def filterEigJSON(file, filterName, directory, filter_posAvgBound, filter_negAvg
     print('Filtering Done.')
 
 
-directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Testing'
-thetadegs = 39
-file = directory + f'/{thetadegs}deg_Unfiltered.json'
+# directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/SetupOG'
+# thetadegs = 38
+# file = directory + f'/{thetadegs}deg_CutSort.json'
 
-filterName = 'FilterA'
-filter_posAvgBound = 15e-3
-filter_negAvgBound = -2.5e-3
-filter_maxStd = 1 #4e-3
-filter_EmaxMin = 1e-5
+# filterName = 'FilterB'
+# filter_posAvgBound = 15e-3
+# filter_negAvgBound = 0
+# filter_maxStd = 1 #4e-3
+# filter_EmaxMin = 1e-5
 
-filterEigJSON(file, filterName, directory, filter_posAvgBound, filter_negAvgBound, filter_maxStd, filter_EmaxMin, thetadegs)
+# filterEigJSON(file, filterName, directory, filter_posAvgBound, filter_negAvgBound, filter_maxStd, filter_EmaxMin, thetadegs)
