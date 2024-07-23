@@ -28,9 +28,9 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'Testing'
+setupFolder = 'NormalizedParabolic'
 filterName = 'FilterA'
-thetadegs = 39
+thetadegs = 38
 sizeScaling = 1
 
 kmag_close = 170
@@ -189,7 +189,7 @@ if plotPreset == 2: #Dispersion Plot with Text Info
 
     plotTextInfo = True
 
-if plotDispersion: #Properties of the Dispersion Plot + Plotting Itself
+def dispersionPlotter(kmag_show, eval_n_show, genColorbars): #Properties of the Dispersion Plot + Plotting Itself
     # --- Dispersion Plotting Properties ---
     axs['e'].set_title('Eigenvalues')
     axs['e'].set_xlabel(r'k [$m^{-1}$]', size=12)
@@ -207,7 +207,7 @@ if plotDispersion: #Properties of the Dispersion Plot + Plotting Itself
     match dispCmap_case:
         case 'Eavg':
             dispCmap_values = Eavg_list
-            dispCmap_norm = plt.Normalize(-2.5e-3 * sizeScaling, 7.5e-3*sizeScaling)
+            dispCmap_norm = plt.Normalize(-7.5e-3 * sizeScaling, 7.5e-3*sizeScaling)
             dispColorbarLabel = 'E Field Centroid along x-axis [m]'
         case _:
             Exception("Improper Dispersion Cmap Case")
@@ -228,8 +228,9 @@ if plotDispersion: #Properties of the Dispersion Plot + Plotting Itself
     axs['e'].set_xlim(overwrite_xlim)
     axs['e'].set_ylim(overwrite_ylim)
 
-    dispCbar = fig.colorbar(dispScatter, ax=axs['e'], orientation=dispColorbarOrientation)
-    dispCbar.set_label(dispColorbarLabel)
+    if genColorbars:
+        dispCbar = fig.colorbar(dispScatter, ax=axs['e'], orientation=dispColorbarOrientation)
+        dispCbar.set_label(dispColorbarLabel)
     #endregion
 
     if plotBulkModes:
@@ -272,12 +273,16 @@ if plotDispersion: #Properties of the Dispersion Plot + Plotting Itself
                         c=wgNegCmap_values, norm=wgNorm, cmap=wgCmap)
         posScatter = axs['e'].scatter(wgPos_klist, wgPos_evalList_n.real, s=wgIntersectionDotSize,
                         c=wgPosCmap_values, norm=wgNorm, cmap=wgCmap)
-        wgCbar = fig.colorbar(posScatter, ax=axs['e'], orientation=wgColorbarOrientation)
-        wgCbar.set_label(wgColorbarLabel)
+        if genColorbars:
+            wgCbar = fig.colorbar(posScatter, ax=axs['e'], orientation=wgColorbarOrientation)
+            wgCbar.set_label(wgColorbarLabel)
         #endregion
 
+        if plotEigenvectors:
+            axs['e'].scatter(kmag_show, eval_n_show, marker='x', s=100, color='black', alpha=0.4)
 
-if plotEigenvectors:
+
+def evecPlotter(file, kmag_close, w_close_n):
     evecdict = EvecSparseEigensolve_toJSON(file, '', kmag_close, w_close_n, False)
     xticklist = np.linspace(-L, L, 7)
     evec_norm = np.abs(np.asarray(evecdict['Ex'])).max()
@@ -338,20 +343,46 @@ if plotEigenvectors:
             if eplist[n] < 1:
                 axs[elet].add_patch(patches.Rectangle((xlist[n], -1.2), deltax, 2.4, color='silver', alpha=1, ec=None))
 
-    if plotDispersion:
-        axs['e'].scatter(evecdict['kmag'], evecdict['eval_returned_n'], marker='x', s=100, color='black', alpha=0.4)
+    return evecdict['kmag'], evecdict['eval_returned_n']
 
-
-if plotTextInfo:
+def textInfoPlotter(kmag_show, eval_n_show):
     text = rf"""
     $\theta$ = {thetadegs}$^\circ$
     $f_p$ = {fp0/1e9} GHz
     $B_0$ = 87 mT
-    shown k = {evecdict['kmag']:.3f} [$1/m$]
-    shown $f$ = {(evecdict['eval_returned_n']):.3f} [GHz]
+    shown k = {kmag_show:.3f} [$1/m$]
+    shown $f$ = {(eval_n_show):.3f} [GHz]
     """
     axs['t'].text(0, 1, text, va='top', ha='left', fontsize=12)
     axs['t'].axis('off')
+
+kmag_show = None
+eval_n_show = None
+
+def on_click(event):
+    # Check if the click is within the axes
+    if event.inaxes is not None:
+        # Get the x and y data of the click event
+        x_click = event.xdata
+        y_click = event.ydata
+        axs['x'].cla()
+        axs['y'].cla()
+        axs['z'].cla()
+        axs['e'].cla()
+        axs['t'].cla()
+        kmag_show, eval_n_show = evecPlotter(file, x_click, y_click)
+        dispersionPlotter(kmag_show, eval_n_show, False)
+        textInfoPlotter(kmag_show, eval_n_show)
+        print(f"Clicked at x={x_click}, y={y_click}")
+        fig.canvas.draw()
+
+
+kmag_show, eval_n_show = evecPlotter(file, kmag_close, w_close_n)
+fig.canvas.mpl_connect('button_press_event', on_click)
+
+dispersionPlotter(kmag_show, eval_n_show, True)
+textInfoPlotter(kmag_show, eval_n_show)
+
 
 plt.tight_layout(pad=2.0)
 plt.show()
