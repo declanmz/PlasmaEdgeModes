@@ -30,9 +30,9 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'Testing'
+setupFolder = 'OGSetupNormalized'
 filterName = 'Unfiltered'
-thetadegs = 39
+thetadegs = 38
 sizeScaling = 1
 
 #region ----- Load JSON Data -----

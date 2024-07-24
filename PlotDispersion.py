@@ -28,8 +28,8 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'NormalizedParabolic'
-filterName = 'FilterA'
+setupFolder = 'OGSetupNormalized'
+filterName = 'Unfiltered'
 thetadegs = 38
 sizeScaling = 1
 
@@ -171,7 +171,7 @@ if plotPreset == 1: #Dispersion Plot with Text Info
 
     plotTextInfo = True
 
-if plotPreset == 2: #Dispersion Plot with Text Info
+if plotPreset == 2: #Dispersion Plot with Eigenvectors and Text Info
     fig, axs = plt.subplot_mosaic([['e', 'e', 'e', 'x', 'x', 't'],
                                    ['e', 'e', 'e', 'y', 'y', 't'],
                                    ['e', 'e', 'e', 'z', 'z', 't']], figsize=(20, 10))
@@ -203,11 +203,15 @@ def dispersionPlotter(kmag_show, eval_n_show, genColorbars): #Properties of the 
 
     dispCmap = 'coolwarm'
     dispColorbarOrientation = 'vertical'
-    dispCmap_case = 'Eavg'
+    dispCmap_case = 'EavgCenter'
     match dispCmap_case:
-        case 'Eavg':
+        case 'EavgCenter':
             dispCmap_values = Eavg_list
             dispCmap_norm = plt.Normalize(-7.5e-3 * sizeScaling, 7.5e-3*sizeScaling)
+            dispColorbarLabel = 'E Field Centroid along x-axis [m]'
+        case 'EavgRight':
+            dispCmap_values = Eavg_list
+            dispCmap_norm = plt.Normalize(0 * sizeScaling, 7.5e-3*sizeScaling)
             dispColorbarLabel = 'E Field Centroid along x-axis [m]'
         case _:
             Exception("Improper Dispersion Cmap Case")
@@ -285,9 +289,17 @@ def dispersionPlotter(kmag_show, eval_n_show, genColorbars): #Properties of the 
 def evecPlotter(file, kmag_close, w_close_n):
     evecdict = EvecSparseEigensolve_toJSON(file, '', kmag_close, w_close_n, False)
     xticklist = np.linspace(-L, L, 7)
-    evec_norm = np.abs(np.asarray(evecdict['Ex'])).max()
+    # evec_norm = np.abs(np.asarray(evecdict['Ex'])).max()
     evec_phase = np.angle(np.asarray(evecdict['Ex']).max())
+
     evec_mult = np.exp(-1j * evec_phase)
+
+    max_list = []
+    for name in ['Ex', 'Ey', 'Ez', 'Bx_n', 'By_n', 'Bz_n', 'ux', 'uy', 'uz']:
+        max_list.append((np.abs(np.asarray(evecdict[name])*evec_mult).real).max())
+        max_list.append((np.abs(np.asarray(evecdict[name])*evec_mult).imag).max())
+
+    evec_norm = np.max(max_list)
 
     common_evecList = []
 
@@ -320,6 +332,7 @@ def evecPlotter(file, kmag_close, w_close_n):
     if plotEigenvectorZ:
         common_evecList.append(ezlet)
         axs[ezlet].set_title('Z Direction')
+        axs[ezlet].set_xlabel('mm')
 
         axs[ezlet].plot(xlist, (np.asarray(evecdict['Ez']) * evec_mult).real / evec_norm, 'r-')
         axs[ezlet].plot(xlist, (np.asarray(evecdict['Ez']) * evec_mult).imag / evec_norm, 'r--')
@@ -331,9 +344,9 @@ def evecPlotter(file, kmag_close, w_close_n):
         axs[ezlet].plot(xlist, (np.asarray(evecdict['uz']) * evec_mult).imag / evec_norm, 'g--')
 
     for elet in common_evecList:
-        axs[exlet].set_ylim([-1.2,1.2])
-        axs[exlet].set_xticks(xticklist)
-        axs[exlet].set_xticklabels([round(xt,3) for xt in xticklist*1e3])
+        axs[elet].set_ylim([-1.2,1.2])
+        axs[elet].set_xticks(xticklist)
+        axs[elet].set_xticklabels([round(xt,3) for xt in xticklist*1e3])
 
         axs[elet].plot(xlist, 2*np.divide(wplist, wp0) - 1, color='cyan', alpha=0.2)
 
@@ -350,6 +363,7 @@ def textInfoPlotter(kmag_show, eval_n_show):
     $\theta$ = {thetadegs}$^\circ$
     $f_p$ = {fp0/1e9} GHz
     $B_0$ = 87 mT
+    $f_c$ = {fc/1e9:.3f} GHz
     shown k = {kmag_show:.3f} [$1/m$]
     shown $f$ = {(eval_n_show):.3f} [GHz]
     """

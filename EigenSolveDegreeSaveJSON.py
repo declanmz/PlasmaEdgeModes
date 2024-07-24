@@ -233,7 +233,7 @@ def EigenSolveDegree_SaveJSON(directory, fr, B0, L, N, fmin, fmax, wp, ep, kmin,
 # N = 100 #300 for good results
 # fr = 1e9 #1 GHz
 # fmin = 0.5 * fr
-# fmax = 15 * fr
+# fmax = 15 *  
 
 # wp0 = 2*np.pi*fp0
 
