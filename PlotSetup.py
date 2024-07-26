@@ -30,7 +30,7 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'OGSetupNormalized'
+setupFolder = 'Setup2'
 filterName = 'Unfiltered'
 thetadegs = 38
 sizeScaling = 1

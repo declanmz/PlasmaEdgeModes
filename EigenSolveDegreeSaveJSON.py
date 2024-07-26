@@ -83,9 +83,14 @@ def EAvgStdMaxList(evecMatrix, xlist, N):
         Ez = [Evec[9*j + 5] for j in range(N)]
         
         Emag = [np.sqrt(np.abs(Ex[j])**2 + np.abs(Ey[j])**2 + np.abs(Ez[j])**2) for j in range(N)]
-        Eavg[i] = np.average(xlist, weights=Emag)
-        Estd[i] = np.sqrt(np.average(np.multiply(xlist, xlist), weights=Emag) - Eavg[i]**2)
-        Emax[i] = np.array([np.abs(Ex).max(), np.abs(Ey).max(), np.abs(Ez).max()]).max()
+        if Emag != list(np.zeros(len(Emag))):
+            Eavg[i] = np.average(xlist, weights=Emag)
+            Estd[i] = np.sqrt(np.average(np.multiply(xlist, xlist), weights=Emag) - Eavg[i]**2)
+            Emax[i] = np.array([np.abs(Ex).max(), np.abs(Ey).max(), np.abs(Ez).max()]).max()
+        else:
+            Eavg[i] = 0
+            Estd[i] = 0
+            Emax[i] = 0
     
     return np.array(Eavg), np.array(Estd), np.array(Emax)
 

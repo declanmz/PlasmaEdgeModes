@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[      8576,        202]
-NotebookOptionsPosition[      7611,        180]
-NotebookOutlinePosition[      8019,        196]
-CellTagsIndexPosition[      7976,        193]
+NotebookDataLength[     10546,        254]
+NotebookOptionsPosition[      8922,        220]
+NotebookOutlinePosition[      9329,        236]
+CellTagsIndexPosition[      9286,        233]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -176,9 +176,49 @@ In[6]:=",ExpressionUUID->"414a42fc-1b99-6147-87bf-68e85369e2e2"],
 Cell[BoxData["14.957853720142195`"], "Output",
  CellChangeTimes->{3.930357665999508*^9},
  CellLabel->"Out[6]=",ExpressionUUID->"0acf1faa-f34a-0e4b-b49d-d6082e7460f9"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"wp0", " ", "=", " ", 
+  RowBox[{"2", "*", "Pi", "*", "10*^9"}]}]], "Input",
+ CellChangeTimes->{{3.930661468920969*^9, 3.930661481435444*^9}},
+ CellLabel->"In[7]:=",ExpressionUUID->"160cc453-386e-694c-8e04-7684d1105c4c"],
+
+Cell[BoxData[
+ RowBox[{"20000000000", " ", "\[Pi]"}]], "Output",
+ CellChangeTimes->{3.93066148470154*^9},
+ CellLabel->"Out[7]=",ExpressionUUID->"94732729-7efb-c24a-8bc3-1281ec979d26"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "=", "3*^8"}]], "Input",
+ CellChangeTimes->{{3.930661488495161*^9, 3.9306614913139343`*^9}},
+ CellLabel->"In[8]:=",ExpressionUUID->"98e93bcf-4371-bd45-8d80-27ccce0c3ae7"],
+
+Cell[BoxData["300000000"], "Output",
+ CellChangeTimes->{3.930661492341465*^9},
+ CellLabel->"Out[8]=",ExpressionUUID->"80294f67-7f7c-604b-95ad-b79355b423f8"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"N", "[", 
+  RowBox[{"2.5", 
+   RowBox[{"wp0", "/", "c"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.930661498757139*^9, 3.9306615035965843`*^9}},
+ CellLabel->"In[9]:=",ExpressionUUID->"ebfa9b70-d6a8-1242-abea-9a76b69ee186"],
+
+Cell[BoxData["523.5987755982989`"], "Output",
+ CellChangeTimes->{3.930661506497572*^9},
+ CellLabel->"Out[9]=",ExpressionUUID->"d7d48361-1fb5-0045-8d0e-4c4405198f9b"]
 }, Open  ]]
 },
-WindowSize->{1920, 1012},
+WindowSize->{1280, 652},
 WindowMargins->{{-5.5, Automatic}, {Automatic, -5.5}},
 FrontEndVersion->"14.0 for Microsoft Windows (64-bit) (December 12, 2023)",
 StyleDefinitions->"Default.nb",
@@ -195,18 +235,28 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 2179, 59, 52, "Input",ExpressionUUID->"7035df39-567a-a542-b603-9997da4f82d4"],
+Cell[558, 20, 2179, 59, 72, "Input",ExpressionUUID->"7035df39-567a-a542-b603-9997da4f82d4"],
 Cell[CellGroupData[{
 Cell[2762, 83, 290, 6, 28, "Input",ExpressionUUID->"6a2903d9-2545-ab48-9d3c-d384d4540b43"],
 Cell[3055, 91, 1303, 22, 51, "Message",ExpressionUUID->"da5930e7-729b-c14f-91aa-0461c77b576a"],
 Cell[4361, 115, 1301, 22, 51, "Message",ExpressionUUID->"16485c44-fad9-6440-8195-e79c24379a24"],
 Cell[5665, 139, 1303, 22, 51, "Message",ExpressionUUID->"71a2f19a-2d2c-2e4e-9105-cb2e546d9eb7"],
 Cell[6971, 163, 455, 10, 28, "Message",ExpressionUUID->"414a42fc-1b99-6147-87bf-68e85369e2e2"],
-Cell[7429, 175, 166, 2, 54, "Output",ExpressionUUID->"0acf1faa-f34a-0e4b-b49d-d6082e7460f9"]
+Cell[7429, 175, 166, 2, 32, "Output",ExpressionUUID->"0acf1faa-f34a-0e4b-b49d-d6082e7460f9"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7632, 182, 243, 4, 28, "Input",ExpressionUUID->"160cc453-386e-694c-8e04-7684d1105c4c"],
+Cell[7878, 188, 183, 3, 32, "Output",ExpressionUUID->"94732729-7efb-c24a-8bc3-1281ec979d26"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8098, 196, 198, 3, 28, "Input",ExpressionUUID->"98e93bcf-4371-bd45-8d80-27ccce0c3ae7"],
+Cell[8299, 201, 156, 2, 32, "Output",ExpressionUUID->"80294f67-7f7c-604b-95ad-b79355b423f8"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8492, 208, 246, 5, 28, "Input",ExpressionUUID->"ebfa9b70-d6a8-1242-abea-9a76b69ee186"],
+Cell[8741, 215, 165, 2, 54, "Output",ExpressionUUID->"d7d48361-1fb5-0045-8d0e-4c4405198f9b"]
 }, Open  ]]
 }
 ]
 *)
-
-(* End of internal cache information *)
 

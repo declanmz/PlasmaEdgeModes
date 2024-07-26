@@ -28,10 +28,10 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'OGSetupNormalized'
-filterName = 'Unfiltered'
-thetadegs = 38
-sizeScaling = 1
+setupFolder = 'ParkerReproduce'
+filterName = 'FilterRight'
+thetadegs = 90
+sizeScaling = 3
 
 kmag_close = 170
 w_close_n = 3.27
@@ -156,6 +156,10 @@ plotEigenvectorY = False
 eylet = 'y'
 plotEigenvectorZ = False
 ezlet = 'z'
+plotEigenvectorPar = False
+eparlet = 'par'
+plotEigenvectorPerp = False
+eperplet = 'perp'
 
 plotTextInfo = False
 #endregion
@@ -186,6 +190,24 @@ if plotPreset == 2: #Dispersion Plot with Eigenvectors and Text Info
     plotEigenvectorX = True
     plotEigenvectorY = True
     plotEigenvectorZ = True
+
+    plotTextInfo = True
+
+if plotPreset == 3: #Dispersion Plot with Eigenvectors and Text Info
+    fig, axs = plt.subplot_mosaic([['e', 'e', 'e', 'x', 'x', 't'],
+                                   ['e', 'e', 'e', 'par', 'par', 't'],
+                                   ['e', 'e', 'e', 'perp', 'perp', 't']], figsize=(20, 10))
+
+    plotDispersion = True
+    plotBulkModes = True
+    plotLightLine = True
+    plotWgLine = True
+    plotWgIntersection = True
+
+    plotEigenvectors = True
+    plotEigenvectorX = True
+    plotEigenvectorPar = True
+    plotEigenvectorPerp = True
 
     plotTextInfo = True
 
@@ -342,6 +364,32 @@ def evecPlotter(file, kmag_close, w_close_n):
 
         axs[ezlet].plot(xlist, (np.asarray(evecdict['uz']) * evec_mult).real / evec_norm, 'g-')
         axs[ezlet].plot(xlist, (np.asarray(evecdict['uz']) * evec_mult).imag / evec_norm, 'g--')
+
+    if plotEigenvectorPar:
+        common_evecList.append(eparlet)
+        axs[eparlet].set_title('Parallel to k Direction')
+        #NEED TO DO
+        axs[eparlet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).real / evec_norm, 'r-')
+        axs[eparlet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).imag / evec_norm, 'r--')
+
+        axs[eparlet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).real / evec_norm, 'b-')
+        axs[eparlet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).imag / evec_norm, 'b--')
+
+        axs[eparlet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).real / evec_norm, 'g-')
+        axs[eparlet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).imag / evec_norm, 'g--')
+    
+    if plotEigenvectorPerp:
+        common_evecList.append(eperplet)
+        axs[eperplet].set_title('Perpendicular to k Direction')
+        #NEED TO DO
+        axs[eperplet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).real / evec_norm, 'r-')
+        axs[eperplet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).imag / evec_norm, 'r--')
+
+        axs[eperplet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).real / evec_norm, 'b-')
+        axs[eperplet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).imag / evec_norm, 'b--')
+
+        axs[eperplet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).real / evec_norm, 'g-')
+        axs[eperplet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).imag / evec_norm, 'g--')
 
     for elet in common_evecList:
         axs[elet].set_ylim([-1.2,1.2])
