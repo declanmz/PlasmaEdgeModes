@@ -52,10 +52,10 @@ def ep(x): #relative permitivity of background medium (not including plasma)
 kmin = -500 #1/m
 kmax = 500 #1/m
 Nk = 100 #100
-kzoffset = 0.8 * wp0 / c
+kzoffset = 0 * wp0 / c
 
 
-directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/ParkerReproduce'
+directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/ParkerReproduce_kz0'
 thetadegsList = np.arange(0,40,2) #2
 
 filterName = 'FilterRight'
@@ -81,7 +81,7 @@ wgEpsilon = 0.1
 #     findWgIntersection_UpdateJSON(Filteredfile, wgEpsilon, thetadegs)
 
 
-thetadegs = 90
+thetadegs = 0
 EigenSolveDegree_SaveJSON(directory, fr, B0, L, N, fmin, fmax, wp, ep, kmin, kmax, thetadegs, Nk, kzoffset, fp0)
 UnfilteredFile = directory + f'/{thetadegs}deg_Unfiltered.json'
 findWgIntersection_UpdateJSON(UnfilteredFile, wgEpsilon, thetadegs)

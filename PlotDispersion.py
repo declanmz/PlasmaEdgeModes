@@ -28,9 +28,9 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'ParkerReproduce'
-filterName = 'FilterRight'
-thetadegs = 90
+setupFolder = 'ParkerReproduce_kz0'
+filterName = 'Unfiltered'
+thetadegs = 0
 sizeScaling = 3
 
 kmag_close = 170
