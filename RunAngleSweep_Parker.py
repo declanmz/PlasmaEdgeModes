@@ -12,7 +12,7 @@ ep_0 = 8.854e-12 #F/m - permitivity of free space
 c = 3e8 #m/s - speed of light
 
 # ---------- Setup parameters ----------
-sizeScaling = 1
+sizeScaling = 1/25
 
 n0 = 4e11 * 1e6
 wp0 = np.sqrt((n0 * e**2)/(m_e * ep_0))
@@ -29,7 +29,7 @@ fmax = 1.5 * fp0
 # ---------- Plasma Density Profile ----------
 # Lscale = 2e-3 #1mm
 # qstart = 6.5e-3  #mm
-offset = 25e-2
+offset = L/2
 # qthickness = 1e-3 #1mm
 
 Lscale = 5e-2 * sizeScaling #1mm
@@ -55,7 +55,7 @@ Nk = 100 #100
 kzoffset = 0 * wp0 / c
 
 
-directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/ParkerReproduce_kz0'
+directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/Parker25thSize_kz0'
 thetadegsList = np.arange(0,40,2) #2
 
 filterName = 'FilterRight'
@@ -81,7 +81,7 @@ wgEpsilon = 0.1
 #     findWgIntersection_UpdateJSON(Filteredfile, wgEpsilon, thetadegs)
 
 
-thetadegs = 0
+thetadegs = 20
 EigenSolveDegree_SaveJSON(directory, fr, B0, L, N, fmin, fmax, wp, ep, kmin, kmax, thetadegs, Nk, kzoffset, fp0)
 UnfilteredFile = directory + f'/{thetadegs}deg_Unfiltered.json'
 findWgIntersection_UpdateJSON(UnfilteredFile, wgEpsilon, thetadegs)

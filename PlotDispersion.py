@@ -20,7 +20,7 @@ from EvecSparseEigensolve import EvecSparseEigensolve_toJSON
 
 #region ----- Define Constants -----
 e = 1.6e-19 #C - charge on electron
-m_e = 9.1094e-31 #kg - mass of electron
+m_e = 9.1094e-31 #kg -  mass of electron
 mu_0 = 4e-7*np.pi #H/m - permeability of free space
 ep_0 = 8.854e-12 #F/m - permitivity of free space
 c = 3e8 #m/s - speed of light
@@ -28,10 +28,10 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'ParkerReproduce_kz0'
+setupFolder = 'FlatFrequency'
 filterName = 'Unfiltered'
-thetadegs = 0
-sizeScaling = 3
+thetadegs = 90
+sizeScaling = 1
 
 kmag_close = 170
 w_close_n = 3.27
@@ -410,7 +410,7 @@ def textInfoPlotter(kmag_show, eval_n_show):
     text = rf"""
     $\theta$ = {thetadegs}$^\circ$
     $f_p$ = {fp0/1e9} GHz
-    $B_0$ = 87 mT
+    $B_0$ = {B0*1e3:.1f} mT
     $f_c$ = {fc/1e9:.3f} GHz
     shown k = {kmag_show:.3f} [$1/m$]
     shown $f$ = {(eval_n_show):.3f} [GHz]
