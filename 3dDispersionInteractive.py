@@ -86,7 +86,7 @@ def draw_surfaces(wp, points, kperpmin, kperpmax, kzmin, kzmax, wmin, wmax):
 
     mesh_lightcone = np.sqrt(mesh_kperp**2 + mesh_kz**2)
 
-    ax.plot_surface(mesh_kperp, mesh_kz, mesh_lightcone, alpha=0.3, edgecolor='none', color='yellow')
+    ax.plot_surface(mesh_kperp, mesh_kz, mesh_lightcone, alpha=0.1, edgecolor='none', color='yellow')
 
     kplus = wp/np.sqrt(1+wp)
     if wp < 1:

@@ -17,50 +17,62 @@ def MagPlasmaEigenmodes(wp, kx, ky, kz):
     #fn = (vn, En, Bn), 9x1 vector
     return [omn, fn]
 
-
-# Generate data for the surface
-wp = 0.5
-points = 30
-kperpmin = -2
-kperpmax = 2
-kzmin = -2
-kzmax = 2
-
-kperp_points = np.linspace(kperpmin, kperpmax, points)
-kz_points = np.linspace(kzmin, kzmax, points)
-mesh_kperp, mesh_kz = np.meshgrid(kperp_points, kz_points)
-flat_kperp = mesh_kperp.ravel()
-flat_kz = mesh_kz.ravel()
-flat_surfaces = [np.zeros(flat_kperp.shape),np.zeros(flat_kperp.shape),np.zeros(flat_kperp.shape),np.zeros(flat_kperp.shape)]
-
-for i in range(len(flat_kperp)):
-    oms = np.sort(MagPlasmaEigenmodes(wp, flat_kperp[i], 0, flat_kz[i])[0])
-    for j in range(4):
-        flat_surfaces[j][i] = oms[j+5]
-
-mesh_surfaces = [flat_surface.reshape(mesh_kperp.shape) for flat_surface in flat_surfaces]
+colors = ['C0', 'C1','C2', 'C3']
 
 # Plotting
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-# Plot the surface
-for i in range(4):
-    ax.plot_surface(mesh_kperp, mesh_kz, mesh_surfaces[i], alpha=0.6, edgecolor='none')
+def draw_surfaces(wp, points, kperpmin, kperpmax, kzmin, kzmax, maxnum=4):
+    kperp_points = np.linspace(kperpmin, kperpmax, points)
+    kz_points = np.linspace(kzmin, kzmax, points)
+    mesh_kperp, mesh_kz = np.meshgrid(kperp_points, kz_points)
+    flat_kperp = mesh_kperp.ravel()
+    flat_kz = mesh_kz.ravel()
+    flat_surfaces = [np.zeros(flat_kperp.shape),np.zeros(flat_kperp.shape),np.zeros(flat_kperp.shape),np.zeros(flat_kperp.shape)]
 
-kplus = wp/np.sqrt(1+wp)
-if wp < 1:
-    kminus = wp/np.sqrt(1-wp)
-else:
-    kminus = np.inf
-if kplus > kzmin and kplus < kzmax:
-    ax.scatter(0, kplus,wp, color='red')
-if -kplus > kzmin and -kplus < kzmax:
-    ax.scatter(0, -kplus,wp, color='blue')
-if kminus > kzmin and kminus < kzmax:
-    ax.scatter(0, kminus,wp, color='blue')
-if -kminus > kzmin and -kminus < kzmax:
-    ax.scatter(0, -kminus,wp, color='red')
+    for i in range(len(flat_kperp)):
+        oms = np.sort(MagPlasmaEigenmodes(wp, flat_kperp[i], 0, flat_kz[i])[0])
+        for j in range(4):
+            flat_surfaces[j][i] = oms[j+5]
+
+    mesh_surfaces = [flat_surface.reshape(mesh_kperp.shape) for flat_surface in flat_surfaces]
+
+    # Plot the surface
+    for i in range(maxnum):
+        ax.plot_surface(mesh_kperp, mesh_kz, mesh_surfaces[i], alpha=0.6, edgecolor='none')
+
+    kplus = wp/np.sqrt(1+wp)
+    if wp < 1:
+        kminus = wp/np.sqrt(1-wp)
+    else:
+        kminus = np.inf
+    if kplus > kzmin and kplus < kzmax:
+        ax.scatter(0, kplus,wp, color='red')
+    if -kplus > kzmin and -kplus < kzmax:
+        ax.scatter(0, -kplus,wp, color='blue')
+    if kminus > kzmin and kminus < kzmax:
+        ax.scatter(0, kminus,wp, color='blue')
+    if -kminus > kzmin and -kminus < kzmax:
+        ax.scatter(0, -kminus,wp, color='red')
+
+
+# Generate data for the surface
+wp = 0.8
+points = 50
+kperpmin = -2
+kperpmax = 2
+kzmin = -0.8
+kzmax = 2
+maxnum = 2
+
+draw_surfaces(wp, points, kperpmin, kperpmax, kzmin, kzmax, maxnum=maxnum)
+
+wp2 = 0.58
+draw_surfaces(wp2, points, kperpmin, kperpmax, kzmin, kzmax, maxnum=maxnum)
+
+wp3 = 0.45
+draw_surfaces(wp3, points, kperpmin, kperpmax, kzmin, kzmax, maxnum=maxnum)
 
 
 plt.gca().invert_xaxis()

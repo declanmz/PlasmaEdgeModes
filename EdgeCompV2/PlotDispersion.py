@@ -28,7 +28,7 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes'
-setupFolder = 'FlatFrequency'
+setupFolder = 'ParkerReproduce'
 filterName = 'Unfiltered'
 thetadegs = 90
 sizeScaling = 1
