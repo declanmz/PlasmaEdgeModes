@@ -150,31 +150,31 @@ def BuildMatrix(ky, kz, N, wc, wplist, eplist, deltax):
         i = 9*im
         #uxi row
         M[i, i+1] = -1j*wc #uyi
-        M[i, i+3] = -1j #Exi
+        M[i, i+3] = -1j*wplist[im] #Exi
         
         #uyi row
         M[i+1, i] = 1j*wc #uxi
-        M[i+1, i+4] = -1j #Eyi
+        M[i+1, i+4] = -1j*wplist[im] #Eyi
         
         #uzi row
-        M[i+2, i+5] = -1j #Ezi
+        M[i+2, i+5] = -1j*wplist[im] #Ezi
     
         #Exi row
-        M[i+3, i] = (1j*wplist[im]**2)/(eplist[im]) #uxi
+        M[i+3, i] = (1j*wplist[im])/(eplist[im]) #uxi
         M[i+3, (i-2)%(9*N)] = (kz)/(2*eplist[im]) #By(i-1/2)
         M[i+3, i+7] = (kz)/(2*eplist[im]) #By(i+1/2)
         M[i+3, (i-1)%(9*N)] = -(ky)/(2*eplist[im]) #Bz(i-1/2)
         M[i+3, i+8] = -(ky)/(2*eplist[im]) #Bz(i+1/2)
         
         #Eyi row
-        M[i+4, i+1] = (1j*wplist[im]**2)/(eplist[im]) #uyi
+        M[i+4, i+1] = (1j*wplist[im])/(eplist[im]) #uyi
         M[i+4, (i-3)%(9*N)] = -(kz)/(2*eplist[im]) #Bx(i-1/2)
         M[i+4, i+6] = -(kz)/(2*eplist[im]) #Bx(i+1/2)
         M[i+4, i+8] = -(1j)/(deltax*eplist[im]) #Bz(i+1/2)
         M[i+4, (i-1)%(9*N)] = (1j)/(deltax*eplist[im]) #Bz(i-1/2)
         
         #Ezi row
-        M[i+5, i+2] = (1j*wplist[im]**2)/(eplist[im]) #uzi
+        M[i+5, i+2] = (1j*wplist[im])/(eplist[im]) #uzi
         M[i+5, (i-3)%(9*N)] = (ky)/(2*eplist[im]) #Bx(i-1/2)
         M[i+5, i+6] = (ky)/(2*eplist[im]) #Bx(i+1/2)
         M[i+5, i+7] = (1j)/(deltax*eplist[im]) #By(i+1/2)
