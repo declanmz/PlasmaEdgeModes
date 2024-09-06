@@ -13,6 +13,7 @@ import csv
 from tqdm import notebook
 import cmath
 import json
+from math import radians
 
 from JSONHelpers import TypeEncoder, as_complex
 from EvecSparseSolve import EvecSparseSolve
@@ -28,10 +29,10 @@ c = 3e8 #m/s - speed of light
 
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/EdgeCompV3/Setups'
-setupFolder = 'ParkerReproduce'
-kzoffset_n = 0.8
-kyoffset_n = 0
-thetadegs = 90
+setupFolder = 'Qin2023Linear'
+kzoffset_n = 0
+kyoffset_n = 0.2
+thetadegs = 0
 
 kmag_close_n = 2
 w_close_n = 3.27
@@ -42,12 +43,15 @@ with open(file, 'r') as f:
     jsondata = json.load(f, object_hook=as_complex)
 # unpacking:
 fr = jsondata['fr']
+wr = 2*np.pi*fr
 N = jsondata['N']
 L_n = jsondata['L_n']
 wc_n = jsondata['wc_n']
 deltax_n = jsondata['deltax_n']
-xlist_n = jsondata['xlist_n']
-wplist_n = jsondata['wplist_n']
+xlist_n = np.array(jsondata['xlist_n'])
+wplist_n = np.array(jsondata['wplist_n'])
+wp1_n = wplist_n.max()
+wp2_n = wplist_n.min()
 eplist = jsondata['eplist']
 kmin_n = jsondata['kmin_n']
 kmax_n = jsondata['kmax_n']
@@ -83,8 +87,8 @@ absStds_n_list = list(map(np.array, jsondata['absStds_n_list']))
 #endregion
 
 #region ----- Bulk Modes Calculation -----
-def MagPlasmaEigenmodes(wp_n, wc_n, kn_x, kn_y, kn_z):
-    H = np.array([[0,-1j*wc_n,0,-1j*wp_n,0,0,0,0,0],
+def BuildBulkMatrix(wp_n, wc_n, kn_x, kn_y, kn_z):
+    return np.array([[0,-1j*wc_n,0,-1j*wp_n,0,0,0,0,0],
                   [1j*wc_n,0,0,0,-1j*wp_n,0,0,0,0],
                   [0,0,0,0,0,-1j*wp_n,0,0,0],
                   [1j*wp_n,0,0,0,0,0,0,kn_z,-kn_y],
@@ -93,36 +97,37 @@ def MagPlasmaEigenmodes(wp_n, wc_n, kn_x, kn_y, kn_z):
                   [0,0,0,0,-kn_z,kn_y,0,0,0],
                   [0,0,0,kn_z,0,-kn_x,0,0,0],
                   [0,0,0,-kn_y,kn_x,0,0,0,0]])
-    omn, fn = np.linalg.eig(H)
-    return [omn.real, fn]
 
-dots = 1000
+def BulkModesSlice(wp_n, wc_n, kmin_n, kmax_n, kzoffset_n, kyoffset_n):
+    dots = 1000
+    kdotslist_n = np.linspace(kmin_n, kmax_n, dots)
+    kydotslist_n = kdotslist_n * np.sin(radians(thetadegs)) + kyoffset_n
+    kzdotslist_n = kdotslist_n * np.cos(radians(thetadegs)) + kzoffset_n
 
-k0line = np.linspace(c*kmin/wp0, c*kmax/wp0,dots)
-ky0line = k0line * np.sin(theta)
-kz0line = k0line * np.cos(theta) + c*kzoffset/wp0
-bulk_kline = wp0 * k0line/c
-bulkLines_n = np.empty((5,dots))
-sig = fc / fp0
+    bulkDispersion_n_list = np.empty((4,dots))
+    for i in range(dots):
+        w_n_list, evecs_n = np.linalg.eig(
+            BuildBulkMatrix(wp_n, wc_n, 0, kydotslist_n[i], kzdotslist_n[i]))
+        w_n_list = np.sort(w_n_list)
+        for j in range(4):
+            bulkDispersion_n_list[j][i] = w_n_list[j+5]
+    
+    return kdotslist_n, bulkDispersion_n_list
 
-for n in range(dots):
-    omns_n = wp0/wr * np.sort(MagPlasmaEigenmodes(sig, ky0line[n], 0, kz0line[n])[0])
-    for i in range(5):
-        bulkLines_n[i][n] = omns_n[i+4]
 
-lightline_n = wp0/wr * np.asarray([np.sqrt(ky0line[i]**2 + kz0line[i]**2) for i in range(dots)])
+# lightline_n = wp0/wr * np.asarray([np.sqrt(ky0line[i]**2 + kz0line[i]**2) for i in range(dots)])
 #endregion
 
 #region ----- Load Waveguide Dispersion -----
-dwg = 6.25e-3
+# dwg = 6.25e-3
 
-dispersionload = np.loadtxt(f"{baseDirectory}/WaveguideDispersion/eps_4.txt")
-k_waveguide = dispersionload[:,0]/180 /dwg * np.pi
-w_waveguide_n = dispersionload[:,1] * 2 * np.pi * 1e9 / wr
+# dispersionload = np.loadtxt(f"{baseDirectory}/WaveguideDispersion/eps_4.txt")
+# k_waveguide = dispersionload[:,0]/180 /dwg * np.pi
+# w_waveguide_n = dispersionload[:,1] * 2 * np.pi * 1e9 / wr
 #endregion
 
 # ----- Choose Preset for Layout -----
-plotPreset = 2
+plotPreset = 3
 
 #region --- Preset Variables ---
 plotDispersion = False
@@ -193,48 +198,57 @@ if plotPreset == 3: #Dispersion Plot with Eigenvectors and Text Info
 
     plotTextInfo = True
 
-def dispersionPlotter(kmag_show, eval_n_show, genColorbars): #Properties of the Dispersion Plot + Plotting Itself
+def dispersionPlotter(kmag_show_n, eval_n_show, genColorbars): #Properties of the Dispersion Plot + Plotting Itself
     # --- Dispersion Plotting Properties ---
     axs['e'].set_title('Eigenvalues')
-    axs['e'].set_xlabel(r'k [$m^{-1}$]', size=12)
-    axs['e'].set_ylabel(r'$f$ [GHz]', size=12) #FOR WHEN fr = 1GHz
+    axs['e'].set_xlabel(r'$ck/\omega_r$', size=12)
+    axs['e'].set_ylabel(r'$\omega/\omega_r$', size=12) #FOR WHEN fr = 1GHz
     axs['e'].grid(color='gray', linestyle='dashed', alpha=0.2)
 
     overwrite_xlim = [None, None] #Values in terms of 1/m
-    overwrite_ylim = [None, None] #Values in terms of wr
+    overwrite_ylim = [0, 2.5] #Values in terms of wr
 
     dotsize = 10
 
     dispCmap = 'coolwarm'
     dispColorbarOrientation = 'vertical'
-    dispCmap_case = 'EavgCenter'
+    dispCmap_case = 'avg'
     match dispCmap_case:
-        case 'EavgCenter':
-            dispCmap_values = Eavg_list
-            dispCmap_norm = plt.Normalize(-7.5e-3 * sizeScaling, 7.5e-3*sizeScaling)
-            dispColorbarLabel = 'E Field Centroid along x-axis [m]'
-        case 'EavgRight':
-            dispCmap_values = Eavg_list
-            dispCmap_norm = plt.Normalize(0 * sizeScaling, 7.5e-3*sizeScaling)
-            dispColorbarLabel = 'E Field Centroid along x-axis [m]'
+        case 'avg':
+            dispCmap_values = [arr * c / wr for arr in avgs_n_list]
+            dispCmap_norm = plt.Normalize(-L_n * c / wr, L_n * c / wr)
+            dispColorbarLabel = 'Evec Avg [m]'
+        case 'absAvg':
+            dispCmap_values = [arr * c / wr for arr in absAvgs_n_list]
+            dispCmap_norm = plt.Normalize(0, L_n * c / wr)
+            dispColorbarLabel = 'Evec Abs Avg [m]'
+        case 'std':
+            dispCmap_values = [arr * c / wr for arr in stds_n_list]
+            dispCmap_norm = plt.Normalize(0, 0.6*L_n * c / wr)
+            dispColorbarLabel = 'Evec Std [m]'
+        case 'absStd':
+            dispCmap_values = [arr * c / wr for arr in absStds_n_list]
+            dispCmap_norm = plt.Normalize(0, 0.3*L_n * c / wr)
+            dispColorbarLabel = 'Evec Abs Std [m]'
         case _:
             Exception("Improper Dispersion Cmap Case")
 
     #region --- Dispersion Plotting Backend ---
-    for n in range(len(klist)):
-        dispScatter = axs['e'].scatter([klist[n] for i in evals_list_n[n]], evals_list_n[n].real, s=dotsize, 
+    for n in range(len(klist_n)):
+        dispScatter = axs['e'].scatter([klist_n[n] for i in evals_n_list[n]], evals_n_list[n].real, s=dotsize, 
                         c=dispCmap_values[n], norm=dispCmap_norm, cmap=dispCmap)
     
     if overwrite_xlim[0] == None:
-        overwrite_xlim[0] = klist[0]
+        overwrite_xlim[0] = klist_n[0]
     if overwrite_xlim[1] == None:
-        overwrite_xlim[1] = klist[-1]
-    if overwrite_ylim[0] == None:
-        overwrite_ylim[0] = wmin/wr
-    if overwrite_ylim[1] == None:
-        overwrite_ylim[1] = wmax/wr
+        overwrite_xlim[1] = klist_n[-1]
     axs['e'].set_xlim(overwrite_xlim)
-    axs['e'].set_ylim(overwrite_ylim)
+
+    if overwrite_ylim[0] == None:
+        overwrite_ylim[0] = 0
+    if overwrite_ylim[1] != None:
+        axs['e'].set_ylim(overwrite_ylim)
+
 
     if genColorbars:
         dispCbar = fig.colorbar(dispScatter, ax=axs['e'], orientation=dispColorbarOrientation)
@@ -242,66 +256,90 @@ def dispersionPlotter(kmag_show, eval_n_show, genColorbars): #Properties of the 
     #endregion
 
     if plotBulkModes:
-        for i in range(len(bulkLines_n)):
-            axs['e'].plot(bulk_kline, bulkLines_n[i], color='black', alpha=0.5)
+        kdotslist_wp1_n, bulkDispersion_wp1_n_list = BulkModesSlice(wp1_n, wc_n, kmin_n, kmax_n, kzoffset_n, kyoffset_n)
+        kdotslist_wp2_n, bulkDispersion_wp2_n_list = BulkModesSlice(wp2_n, wc_n, kmin_n, kmax_n, kzoffset_n, kyoffset_n)
 
-    if plotLightLine:
-        axs['e'].plot(bulk_kline, lightline_n, color='yellow')
+        for i in range(4):
+            axs['e'].plot(kdotslist_wp1_n, bulkDispersion_wp1_n_list[i], color='green', alpha=0.5)
+            axs['e'].plot(kdotslist_wp2_n, bulkDispersion_wp2_n_list[i], color='yellow', alpha=0.5)
 
-    if plotWgLine:
-        wgLineColor = 'green'
-        axs['e'].plot(k_waveguide, w_waveguide_n, color=wgLineColor)
-        axs['e'].plot(-k_waveguide, w_waveguide_n, color=wgLineColor)
+    # if plotLightLine:
+    #     axs['e'].plot(bulk_kline, lightline_n, color='yellow')
 
-    if plotWgIntersection:
-        wgIntersectionDotSize = 15
-        wgCmap = 'gist_rainbow'
-        wgColorbarOrientation = 'vertical'
-        wgCmap_case = 'Estd'
-        match wgCmap_case:
-            case 'Eavg':
-                wgNegCmap_values = c*wgNeg_EavgList_n/wr
-                wgPosCmap_values = c*wgPos_EavgList_n/wr
-                wgNorm = plt.Normalize(7.5e-3,15e-3)
-                wgColorbarLabel = 'E Field Centroid Along x-axis [m]'
-            case 'Estd':
-                wgNegCmap_values = c*wgNeg_EstdList_n/wr
-                wgPosCmap_values = c*wgPos_EstdList_n/wr
-                wgNorm = plt.Normalize(.001, .01)
-                wgColorbarLabel = 'E Field Standard Deviation Along x-axis [m]'
-            case 'Emax': #bad measure to go off of
-                wgNegCmap_values = wgNeg_EmaxList_n
-                wgPosCmap_values = wgPos_EmaxList_n
-                wgNorm = plt.Normalize(0.03,0.12)
-                wgColorbarLabel = 'E Field Maximum Value [m]'
-            case _:
-                Exception("Improper Waveguide Cmap Case")
-        #region --- Waveguide Intersection Plotting Backend ---
-        negScatter = axs['e'].scatter(wgNeg_klist, wgNeg_evalList_n.real, s=wgIntersectionDotSize,
-                        c=wgNegCmap_values, norm=wgNorm, cmap=wgCmap)
-        posScatter = axs['e'].scatter(wgPos_klist, wgPos_evalList_n.real, s=wgIntersectionDotSize,
-                        c=wgPosCmap_values, norm=wgNorm, cmap=wgCmap)
-        if genColorbars:
-            wgCbar = fig.colorbar(posScatter, ax=axs['e'], orientation=wgColorbarOrientation)
-            wgCbar.set_label(wgColorbarLabel)
-        #endregion
+    # if plotWgLine:
+    #     wgLineColor = 'green'
+    #     axs['e'].plot(k_waveguide, w_waveguide_n, color=wgLineColor)
+    #     axs['e'].plot(-k_waveguide, w_waveguide_n, color=wgLineColor)
 
-        if plotEigenvectors:
-            axs['e'].scatter(kmag_show, eval_n_show, marker='x', s=100, color='black', alpha=0.4)
+    # if plotWgIntersection:
+    #     wgIntersectionDotSize = 15
+    #     wgCmap = 'gist_rainbow'
+    #     wgColorbarOrientation = 'vertical'
+    #     wgCmap_case = 'Estd'
+    #     match wgCmap_case:
+    #         case 'Eavg':
+    #             wgNegCmap_values = c*wgNeg_EavgList_n/wr
+    #             wgPosCmap_values = c*wgPos_EavgList_n/wr
+    #             wgNorm = plt.Normalize(7.5e-3,15e-3)
+    #             wgColorbarLabel = 'E Field Centroid Along x-axis [m]'
+    #         case 'Estd':
+    #             wgNegCmap_values = c*wgNeg_EstdList_n/wr
+    #             wgPosCmap_values = c*wgPos_EstdList_n/wr
+    #             wgNorm = plt.Normalize(.001, .01)
+    #             wgColorbarLabel = 'E Field Standard Deviation Along x-axis [m]'
+    #         case 'Emax': #bad measure to go off of
+    #             wgNegCmap_values = wgNeg_EmaxList_n
+    #             wgPosCmap_values = wgPos_EmaxList_n
+    #             wgNorm = plt.Normalize(0.03,0.12)
+    #             wgColorbarLabel = 'E Field Maximum Value [m]'
+    #         case _:
+    #             Exception("Improper Waveguide Cmap Case")
+    #     #region --- Waveguide Intersection Plotting Backend ---
+    #     negScatter = axs['e'].scatter(wgNeg_klist, wgNeg_evalList_n.real, s=wgIntersectionDotSize,
+    #                     c=wgNegCmap_values, norm=wgNorm, cmap=wgCmap)
+    #     posScatter = axs['e'].scatter(wgPos_klist, wgPos_evalList_n.real, s=wgIntersectionDotSize,
+    #                     c=wgPosCmap_values, norm=wgNorm, cmap=wgCmap)
+    #     if genColorbars:
+    #         wgCbar = fig.colorbar(posScatter, ax=axs['e'], orientation=wgColorbarOrientation)
+    #         wgCbar.set_label(wgColorbarLabel)
+    #     #endregion
+
+    if plotEigenvectors:
+        axs['e'].scatter(kmag_show_n, eval_n_show, marker='x', s=100, color='black', alpha=0.4)
 
 
-def evecPlotter(file, kmag_close, w_close_n):
-    evecdict = EvecSparseEigensolve_toJSON(file, '', kmag_close, w_close_n, False)
+def evecPlotter(file, kmag_close_n, w_close_n):
+    evecdict = EvecSparseSolve(file, kmag_close_n, w_close_n)
+    L = (c * L_n / wr) * 1e-3 #make mm
+    xlist = (c * xlist_n / wr) * 1e-3 #make mm
     xticklist = np.linspace(-L, L, 7)
-    # evec_norm = np.abs(np.asarray(evecdict['Ex'])).max()
-    evec_phase = np.angle(np.asarray(evecdict['Ex']).max())
+    deltax = (c * deltax_n / wr) * 1e-3
 
+    evec_phase = np.angle(np.asarray(evecdict['Ex']).max())
     evec_mult = np.exp(-1j * evec_phase)
 
+    Ex = np.asarray(evecdict['Ex'])*evec_mult
+    Ey = np.asarray(evecdict['Ey'])*evec_mult
+    Ez = np.asarray(evecdict['Ez'])*evec_mult
+    Epar = Ez * np.cos(radians(thetadegs)) + Ey * np.sin(radians(thetadegs))
+    Eperp = Ez * np.sin(radians(thetadegs)) - Ey * np.cos(radians(thetadegs))
+
+    Bx_n = np.asarray(evecdict['Bx_n'])*evec_mult
+    By_n = np.asarray(evecdict['By_n'])*evec_mult
+    Bz_n = np.asarray(evecdict['Bz_n'])*evec_mult
+    Bpar_n = Bz_n * np.cos(radians(thetadegs)) + By_n * np.sin(radians(thetadegs))
+    Bperp_n = Bz_n * np.sin(radians(thetadegs)) - By_n * np.cos(radians(thetadegs))
+
+    ux = np.asarray(evecdict['ux'])*evec_mult
+    uy = np.asarray(evecdict['uy'])*evec_mult
+    uz = np.asarray(evecdict['uz'])*evec_mult
+    upar = uz * np.cos(radians(thetadegs)) + uy * np.sin(radians(thetadegs))
+    uperp = uz * np.sin(radians(thetadegs)) - uy * np.cos(radians(thetadegs))
+    
     max_list = []
-    for name in ['Ex', 'Ey', 'Ez', 'Bx_n', 'By_n', 'Bz_n', 'ux', 'uy', 'uz']:
-        max_list.append((np.abs(np.asarray(evecdict[name])*evec_mult).real).max())
-        max_list.append((np.abs(np.asarray(evecdict[name])*evec_mult).imag).max())
+    for vec in [Ex, Ey, Ez, Epar, Eperp, Bx_n, By_n, Bz_n, Bpar_n, Bperp_n, ux, uy, uz, upar, uperp]:
+        max_list.append((np.abs(vec).real).max())
+        max_list.append((np.abs(vec).imag).max())
 
     evec_norm = np.max(max_list)
 
@@ -309,76 +347,82 @@ def evecPlotter(file, kmag_close, w_close_n):
 
     if plotEigenvectorX:
         common_evecList.append(exlet)
-        axs[exlet].set_title('X Direction')
+        axs[exlet].set_title(r'$E_x, B_x, u_x$')
 
-        axs[exlet].plot(xlist, (np.asarray(evecdict['Ex']) * evec_mult).imag / evec_norm, 'r--')
-        axs[exlet].plot(xlist, (np.asarray(evecdict['Ex']) * evec_mult).real / evec_norm, 'r-')
+        axs[exlet].plot(xlist, Ex.imag / evec_norm, 'r--')
+        axs[exlet].plot(xlist, Ex.real / evec_norm, 'r-')
 
-        axs[exlet].plot(xlist, (np.asarray(evecdict['Bx_n']) * evec_mult).real / evec_norm, 'b-')
-        axs[exlet].plot(xlist, (np.asarray(evecdict['Bx_n']) * evec_mult).imag / evec_norm, 'b--')
+        axs[exlet].plot(xlist, Bx_n.real / evec_norm, 'b-')
+        axs[exlet].plot(xlist, Bx_n.imag / evec_norm, 'b--')
 
-        axs[exlet].plot(xlist, (np.asarray(evecdict['ux']) * evec_mult).real / evec_norm, 'g-')
-        axs[exlet].plot(xlist, (np.asarray(evecdict['ux']) * evec_mult).imag / evec_norm, 'g--')
+        axs[exlet].plot(xlist, ux.real / evec_norm, 'g-')
+        axs[exlet].plot(xlist, ux.imag / evec_norm, 'g--')
 
     if plotEigenvectorY:
         common_evecList.append(eylet)
-        axs[eylet].set_title('Y Direction')
+        axs[eylet].set_title(r'$E_y, B_y, u_y$')
 
-        axs[eylet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).real / evec_norm, 'r-')
-        axs[eylet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).imag / evec_norm, 'r--')
+        axs[eylet].plot(xlist, Ey.real / evec_norm, 'r-')
+        axs[eylet].plot(xlist, Ey.imag / evec_norm, 'r--')
 
-        axs[eylet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).real / evec_norm, 'b-')
-        axs[eylet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).imag / evec_norm, 'b--')
+        axs[eylet].plot(xlist, By_n.real / evec_norm, 'b-')
+        axs[eylet].plot(xlist, By_n.imag / evec_norm, 'b--')
 
-        axs[eylet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).real / evec_norm, 'g-')
-        axs[eylet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).imag / evec_norm, 'g--')
+        axs[eylet].plot(xlist, uy.real / evec_norm, 'g-')
+        axs[eylet].plot(xlist, uy.imag / evec_norm, 'g--')
 
     if plotEigenvectorZ:
         common_evecList.append(ezlet)
-        axs[ezlet].set_title('Z Direction')
+        axs[ezlet].set_title(r'$E_z, B_z, u_z$')
         axs[ezlet].set_xlabel('mm')
 
-        axs[ezlet].plot(xlist, (np.asarray(evecdict['Ez']) * evec_mult).real / evec_norm, 'r-')
-        axs[ezlet].plot(xlist, (np.asarray(evecdict['Ez']) * evec_mult).imag / evec_norm, 'r--')
+        axs[ezlet].plot(xlist, Ez.real / evec_norm, 'r-')
+        axs[ezlet].plot(xlist, Ez.imag / evec_norm, 'r--')
 
-        axs[ezlet].plot(xlist, (np.asarray(evecdict['Bz_n']) * evec_mult).real / evec_norm, 'b-')
-        axs[ezlet].plot(xlist, (np.asarray(evecdict['Bz_n']) * evec_mult).imag / evec_norm, 'b--')
+        axs[ezlet].plot(xlist, Bz_n.real / evec_norm, 'b-')
+        axs[ezlet].plot(xlist, Bz_n.imag / evec_norm, 'b--')
 
-        axs[ezlet].plot(xlist, (np.asarray(evecdict['uz']) * evec_mult).real / evec_norm, 'g-')
-        axs[ezlet].plot(xlist, (np.asarray(evecdict['uz']) * evec_mult).imag / evec_norm, 'g--')
+        axs[ezlet].plot(xlist, uz.real / evec_norm, 'g-')
+        axs[ezlet].plot(xlist, uz.imag / evec_norm, 'g--')
 
     if plotEigenvectorPar:
         common_evecList.append(eparlet)
-        axs[eparlet].set_title('Parallel to k Direction')
+        axs[eparlet].set_title(r'$E_\parallel, B_\parallel, u_\parallel$')
         #NEED TO DO
-        axs[eparlet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).real / evec_norm, 'r-')
-        axs[eparlet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).imag / evec_norm, 'r--')
+        axs[eparlet].plot(xlist, Epar.real / evec_norm, 'r-')
+        axs[eparlet].plot(xlist, Epar.imag / evec_norm, 'r--')
 
-        axs[eparlet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).real / evec_norm, 'b-')
-        axs[eparlet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).imag / evec_norm, 'b--')
+        axs[eparlet].plot(xlist, Bpar_n.real / evec_norm, 'b-')
+        axs[eparlet].plot(xlist, Bpar_n.imag / evec_norm, 'b--')
 
-        axs[eparlet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).real / evec_norm, 'g-')
-        axs[eparlet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).imag / evec_norm, 'g--')
+        axs[eparlet].plot(xlist, upar.real / evec_norm, 'g-')
+        axs[eparlet].plot(xlist, upar.imag / evec_norm, 'g--')
     
     if plotEigenvectorPerp:
         common_evecList.append(eperplet)
-        axs[eperplet].set_title('Perpendicular to k Direction')
+        axs[eperplet].set_title(r'$E_\perp, B_\perp, u_\perp$')
+        axs[eperplet].set_xlabel('mm')
+
         #NEED TO DO
-        axs[eperplet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).real / evec_norm, 'r-')
-        axs[eperplet].plot(xlist, (np.asarray(evecdict['Ey']) * evec_mult).imag / evec_norm, 'r--')
+        axs[eperplet].plot(xlist, Eperp.real / evec_norm, 'r-')
+        axs[eperplet].plot(xlist, Eperp.imag / evec_norm, 'r--')
 
-        axs[eperplet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).real / evec_norm, 'b-')
-        axs[eperplet].plot(xlist, (np.asarray(evecdict['By_n']) * evec_mult).imag / evec_norm, 'b--')
+        axs[eperplet].plot(xlist, Bperp_n.real / evec_norm, 'b-')
+        axs[eperplet].plot(xlist, Bperp_n.imag / evec_norm, 'b--')
 
-        axs[eperplet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).real / evec_norm, 'g-')
-        axs[eperplet].plot(xlist, (np.asarray(evecdict['uy']) * evec_mult).imag / evec_norm, 'g--')
+        axs[eperplet].plot(xlist, uperp.real / evec_norm, 'g-')
+        axs[eperplet].plot(xlist, uperp.imag / evec_norm, 'g--')
 
+    twinaxes = {}
     for elet in common_evecList:
         axs[elet].set_ylim([-1.2,1.2])
         axs[elet].set_xticks(xticklist)
         axs[elet].set_xticklabels([round(xt,3) for xt in xticklist*1e3])
 
-        axs[elet].plot(xlist, 2*np.divide(wplist, wp0) - 1, color='cyan', alpha=0.2)
+        twinaxes[elet] = axs[elet].twinx()
+        twinaxes[elet].set_ylim([wp2_n - 0.2*(wp1_n-wp2_n), wp1_n + 0.2*(wp1_n-wp2_n)])
+        twinaxes[elet].set_ylabel(r'$\omega_p/\omega_r$')
+        twinaxes[elet].plot(xlist, wplist_n, color='cyan', alpha=0.2)
 
         for n in range(N):
             if eplist[n] > 1:
@@ -386,21 +430,22 @@ def evecPlotter(file, kmag_close, w_close_n):
             if eplist[n] < 1:
                 axs[elet].add_patch(patches.Rectangle((xlist[n], -1.2), deltax, 2.4, color='silver', alpha=1, ec=None))
 
-    return evecdict['kmag'], evecdict['eval_returned_n']
+    return evecdict['kmag_n'], evecdict['eval_returned_n']
 
-def textInfoPlotter(kmag_show, eval_n_show):
+def textInfoPlotter(kmag_show_n, eval_n_show):
     text = rf"""
+    $f_r$ = {fr/1e9} GHz
+    $\omega_1/\omega_r$ = {wp1_n}
+    $\omega_2/\omega_r$ = {wp2_n}
+    $\omega_c/\omega_r$ = {wc_n}
     $\theta$ = {thetadegs}$^\circ$
-    $f_p$ = {fp0/1e9} GHz
-    $B_0$ = {B0*1e3:.1f} mT
-    $f_c$ = {fc/1e9:.3f} GHz
-    shown k = {kmag_show:.3f} [$1/m$]
-    shown $f$ = {(eval_n_show):.3f} [GHz]
+    shown $ck/\omega_r$ = {kmag_show_n:.3f}
+    shown $\omega/\omega_r$ = {(eval_n_show):.3f}
     """
     axs['t'].text(0, 1, text, va='top', ha='left', fontsize=12)
     axs['t'].axis('off')
 
-kmag_show = None
+kmag_show_n = None
 eval_n_show = None
 
 def on_click(event):
@@ -410,8 +455,8 @@ def on_click(event):
         x_click = event.xdata
         y_click = event.ydata
         axs['x'].cla()
-        axs['y'].cla()
-        axs['z'].cla()
+        axs['par'].cla()
+        axs['perp'].cla()
         axs['e'].cla()
         axs['t'].cla()
         kmag_show, eval_n_show = evecPlotter(file, x_click, y_click)
@@ -421,11 +466,11 @@ def on_click(event):
         fig.canvas.draw()
 
 
-kmag_show, eval_n_show = evecPlotter(file, kmag_close, w_close_n)
+kmag_show_n, eval_n_show = evecPlotter(file, kmag_close_n, w_close_n)
 fig.canvas.mpl_connect('button_press_event', on_click)
 
-dispersionPlotter(kmag_show, eval_n_show, True)
-textInfoPlotter(kmag_show, eval_n_show)
+dispersionPlotter(kmag_show_n, eval_n_show, True)
+textInfoPlotter(kmag_show_n, eval_n_show)
 
 
 plt.tight_layout(pad=2.0)

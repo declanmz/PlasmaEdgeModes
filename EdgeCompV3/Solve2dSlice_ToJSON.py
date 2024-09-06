@@ -53,7 +53,7 @@ def Solve2dSlice_ToJSON_normalized(directory, fr, wc_n, L_n, N, wp_n, ep, kmin_n
     stds_n_list = []
     absStds_n_list = []
 
-    pbar = tqdm(total=Nk, desc=f"({kzoffset_n} kzn, {kyoffset_n} kyn, {thetadegs} deg Slice Computation", position=0)
+    pbar = tqdm(total=Nk, desc=f"{kzoffset_n} kzn, {kyoffset_n} kyn, {thetadegs} deg Slice Computation", position=0)
     for k_n in klist_n:
         ky_n = k_n * np.sin(radians(thetadegs)) + kyoffset_n
         kz_n = k_n * np.cos(radians(thetadegs)) + kzoffset_n
@@ -127,7 +127,7 @@ def dataFromEvecs(evecMatrix, xlist_n, N):
         Evec = np.transpose(evecMatrix[:,i]).tolist()[0]
         normVec = np.array([np.linalg.norm(Evec[9*j:9*(j+1)]) for j in range(N)])
 
-        if normVec != list(np.zeros(len(normVec))):
+        if normVec.any(): #make sure its not all zero
             avgs[i] = np.average(xlist_n, weights=normVec)
             absAvgs[i] = np.average(np.abs(xlist_n), weights=normVec)
             #can't confirm that the stds are correct as written, just an initial typing
