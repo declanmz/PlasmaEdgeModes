@@ -40,7 +40,7 @@ def draw_surfaces(wp, points, kperpmin, kperpmax, kzmin, kzmax, maxnum=4, colorL
 
     # Plot the surface
     for i in range(maxnum):
-        ax.plot_surface(mesh_kperp, mesh_kz, mesh_surfaces[i], alpha=0.6, edgecolor='none', color=colorList[i])
+        ax.plot_surface(mesh_kperp, mesh_kz, mesh_surfaces[i], alpha=0.5, edgecolor='none', color=colorList[i])
 
     kplus = wp/np.sqrt(1+wp)
     if wp < 1:

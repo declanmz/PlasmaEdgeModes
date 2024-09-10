@@ -30,9 +30,9 @@ c = 3e8 #m/s - speed of light
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/EdgeCompV3/Setups'
 setupFolder = 'Qin2023Linear'
-kzoffset_n = 0
-kyoffset_n = 0.2
-thetadegs = 0
+kzoffset_n = 0.9
+kyoffset_n = 0
+thetadegs = 90
 
 kmag_close_n = 2
 w_close_n = 3.27
@@ -66,6 +66,28 @@ avgs_n_list = list(map(np.array, jsondata['avgs_n_list']))
 absAvgs_n_list = list(map(np.array, jsondata['absAvgs_n_list']))
 stds_n_list = list(map(np.array, jsondata['stds_n_list']))
 absStds_n_list = list(map(np.array, jsondata['absStds_n_list']))
+
+avgFilterBounds = [30, 70]
+absAvgFilterBounds = [0, L_n]
+stdFilterBounds = [0, L_n]
+absStdFilterBounds = [0, L_n]
+
+#Do filtering
+for i in range(Nk):
+        avgFilteredIndices = np.where((avgs_n_list[i] >= avgFilterBounds[0]) & (avgs_n_list[i] <= avgFilterBounds[1]))
+        absAvgFilteredIndices = np.where((absAvgs_n_list[i] >= absAvgFilterBounds[0]) & (absAvgs_n_list[i] <= absAvgFilterBounds[1]))
+        stdFilteredIndices = np.where((stds_n_list[i] >= stdFilterBounds[0]) & (stds_n_list[i] <= stdFilterBounds[1]))
+        absStdFilteredIndices = np.where((absStds_n_list[i] >= absStdFilterBounds[0]) & (absStds_n_list[i] <= absStdFilterBounds[1]))
+
+        filteredIndices = np.intersect1d(np.intersect1d(avgFilteredIndices, absAvgFilteredIndices), np.intersect1d(stdFilteredIndices, absStdFilteredIndices))
+
+        evals_n_list[i] = evals_n_list[i][filteredIndices]
+        avgs_n_list[i] = avgs_n_list[i][filteredIndices]
+        absAvgs_n_list[i] = absAvgs_n_list[i][filteredIndices]
+        stds_n_list[i] = stds_n_list[i][filteredIndices]
+        absStds_n_list[i] = absStds_n_list[i][filteredIndices]
+
+
 
 
 # try: #NEED TO FIX
@@ -310,10 +332,11 @@ def dispersionPlotter(kmag_show_n, eval_n_show, genColorbars): #Properties of th
 
 def evecPlotter(file, kmag_close_n, w_close_n):
     evecdict = EvecSparseSolve(file, kmag_close_n, w_close_n)
-    L = (c * L_n / wr) * 1e-3 #make mm
-    xlist = (c * xlist_n / wr) * 1e-3 #make mm
+    L = (c * L_n / wr)
+    xlist = (c * xlist_n / wr)
     xticklist = np.linspace(-L, L, 7)
-    deltax = (c * deltax_n / wr) * 1e-3
+    deltax = (c * deltax_n / wr)
+    propTheta = evecdict['propTheta']
 
     evec_phase = np.angle(np.asarray(evecdict['Ex']).max())
     evec_mult = np.exp(-1j * evec_phase)
@@ -321,20 +344,20 @@ def evecPlotter(file, kmag_close_n, w_close_n):
     Ex = np.asarray(evecdict['Ex'])*evec_mult
     Ey = np.asarray(evecdict['Ey'])*evec_mult
     Ez = np.asarray(evecdict['Ez'])*evec_mult
-    Epar = Ez * np.cos(radians(thetadegs)) + Ey * np.sin(radians(thetadegs))
-    Eperp = Ez * np.sin(radians(thetadegs)) - Ey * np.cos(radians(thetadegs))
+    Epar = Ez * np.cos(propTheta) + Ey * np.sin(propTheta)
+    Eperp = Ez * np.sin(propTheta) - Ey * np.cos(propTheta)
 
     Bx_n = np.asarray(evecdict['Bx_n'])*evec_mult
     By_n = np.asarray(evecdict['By_n'])*evec_mult
     Bz_n = np.asarray(evecdict['Bz_n'])*evec_mult
-    Bpar_n = Bz_n * np.cos(radians(thetadegs)) + By_n * np.sin(radians(thetadegs))
-    Bperp_n = Bz_n * np.sin(radians(thetadegs)) - By_n * np.cos(radians(thetadegs))
+    Bpar_n = Bz_n * np.cos(propTheta) + By_n * np.sin(propTheta)
+    Bperp_n = Bz_n * np.sin(propTheta) - By_n * np.cos(propTheta)
 
     ux = np.asarray(evecdict['ux'])*evec_mult
     uy = np.asarray(evecdict['uy'])*evec_mult
     uz = np.asarray(evecdict['uz'])*evec_mult
-    upar = uz * np.cos(radians(thetadegs)) + uy * np.sin(radians(thetadegs))
-    uperp = uz * np.sin(radians(thetadegs)) - uy * np.cos(radians(thetadegs))
+    upar = uz * np.cos(propTheta) + uy * np.sin(propTheta)
+    uperp = uz * np.sin(propTheta) - uy * np.cos(propTheta)
     
     max_list = []
     for vec in [Ex, Ey, Ez, Epar, Eperp, Bx_n, By_n, Bz_n, Bpar_n, Bperp_n, ux, uy, uz, upar, uperp]:
@@ -454,12 +477,18 @@ def on_click(event):
         # Get the x and y data of the click event
         x_click = event.xdata
         y_click = event.ydata
+
+        k_n_click_id = np.argmin(np.abs(klist_n - x_click))
+        k_n_click = klist_n[k_n_click_id]
+        evals_n_click = np.asarray(evals_n_list[k_n_click_id])
+        eval_n_click = evals_n_click[np.argmin(np.abs(evals_n_click - y_click))]
+
         axs['x'].cla()
         axs['par'].cla()
         axs['perp'].cla()
         axs['e'].cla()
         axs['t'].cla()
-        kmag_show, eval_n_show = evecPlotter(file, x_click, y_click)
+        kmag_show, eval_n_show = evecPlotter(file, k_n_click, eval_n_click)
         dispersionPlotter(kmag_show, eval_n_show, False)
         textInfoPlotter(kmag_show, eval_n_show)
         print(f"Clicked at x={x_click}, y={y_click}")

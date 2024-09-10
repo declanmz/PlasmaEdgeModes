@@ -28,6 +28,10 @@ def EvecSparseSolve(file, kmag_close_n, w_close_n):
 
     ky_n = kmag_n * np.sin(radians(thetadegs)) + kyoffset_n
     kz_n = kmag_n * np.cos(radians(thetadegs)) + kzoffset_n
+    try:
+        propTheta = np.arctan2(ky_n, kz_n)
+    except:
+        propTheta = 0
 
     # could make this a higher fidelity thing... but that would require changing wplist
     M = BuildMatrix(ky_n, kz_n, N, jsondata['wc_n'], jsondata['wplist_n'], 
@@ -53,6 +57,7 @@ def EvecSparseSolve(file, kmag_close_n, w_close_n):
         'kzoffset_n':kzoffset_n,
         'kyoffset_n':kyoffset_n,
         'kmag_n':kmag_n,
+        'propTheta':propTheta,
         'eval_fromSource_n':eval_n,
         'eval_returned_n':eval_returned_n,
         'Ex':Ex,
