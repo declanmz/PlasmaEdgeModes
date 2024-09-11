@@ -8,64 +8,49 @@ from math import radians
 from JSONHelpers import TypeEncoder, as_complex
 from EvecSparseSolve import EvecSparseSolve
 
-# ----- Choose File -----
-baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/EdgeCompV3/Setups'
-setupFolder = 'Qin2023Linear'
-kzoffset_n = 0.9
-kyoffset_n = 0
-thetadegs = 90
+def plotSlicePoints(fig, directory, kzoffset_n, kyoffset_n, thetadegs, avgFilterBounds, absAvgFilterBounds, stdFilterBounds, absStdFilterBounds, wFilterBounds):
 
-#region ----- Load JSON Data -----
-file = f'{baseDirectory}/{setupFolder}/{kzoffset_n}kzn_{kyoffset_n}kyn_{thetadegs}deg_SliceSolve.json'
-with open(file, 'r') as f:
-    jsondata = json.load(f, object_hook=as_complex)
-# unpacking:
-fr = jsondata['fr']
-wr = 2*np.pi*fr
-N = jsondata['N']
-L_n = jsondata['L_n']
-wc_n = jsondata['wc_n']
-deltax_n = jsondata['deltax_n']
-xlist_n = np.array(jsondata['xlist_n'])
-wplist_n = np.array(jsondata['wplist_n'])
-wp1_n = wplist_n.max()
-wp2_n = wplist_n.min()
-eplist = jsondata['eplist']
-kmin_n = jsondata['kmin_n']
-kmax_n = jsondata['kmax_n']
-thetadegs = jsondata['thetadegs']
-Nk = jsondata['Nk']
-kzoffset_n = jsondata['kzoffset_n']
-kyoffset_n = jsondata['kyoffset_n']
-klist_n = np.asarray(jsondata['klist_n'])
+    file = f'{directory}/{kzoffset_n}kzn_{kyoffset_n}kyn_{thetadegs}deg_SliceSolve.json'
+    with open(file, 'r') as f:
+        jsondata = json.load(f, object_hook=as_complex)
 
-evals_n_list = list(map(np.array, jsondata['evals_n_list']))
-avgs_n_list = list(map(np.array, jsondata['avgs_n_list']))
-absAvgs_n_list = list(map(np.array, jsondata['absAvgs_n_list']))
-stds_n_list = list(map(np.array, jsondata['stds_n_list']))
-absStds_n_list = list(map(np.array, jsondata['absStds_n_list']))
+    L_n = jsondata['L_n']
+    thetadegs = jsondata['thetadegs']
+    Nk = jsondata['Nk']
+    kzoffset_n = jsondata['kzoffset_n']
+    kyoffset_n = jsondata['kyoffset_n']
+    klist_n = np.asarray(jsondata['klist_n'])
 
-avgFilterBounds = [30, 70]
-absAvgFilterBounds = [0, L_n]
-stdFilterBounds = [0, L_n]
-absStdFilterBounds = [0, L_n]
+    evals_n_list = list(map(np.array, jsondata['evals_n_list']))
+    avgs_n_list = list(map(np.array, jsondata['avgs_n_list']))
+    absAvgs_n_list = list(map(np.array, jsondata['absAvgs_n_list']))
+    stds_n_list = list(map(np.array, jsondata['stds_n_list']))
+    absStds_n_list = list(map(np.array, jsondata['absStds_n_list']))
 
-#Do filtering
-for i in range(Nk):
-        avgFilteredIndices = np.where((avgs_n_list[i] >= avgFilterBounds[0]) & (avgs_n_list[i] <= avgFilterBounds[1]))
-        absAvgFilteredIndices = np.where((absAvgs_n_list[i] >= absAvgFilterBounds[0]) & (absAvgs_n_list[i] <= absAvgFilterBounds[1]))
-        stdFilteredIndices = np.where((stds_n_list[i] >= stdFilterBounds[0]) & (stds_n_list[i] <= stdFilterBounds[1]))
-        absStdFilteredIndices = np.where((absStds_n_list[i] >= absStdFilterBounds[0]) & (absStds_n_list[i] <= absStdFilterBounds[1]))
+    for i in range(Nk):
+            avgFilteredIndices = np.where((avgs_n_list[i] >= avgFilterBounds[0]) & (avgs_n_list[i] <= avgFilterBounds[1]))
+            absAvgFilteredIndices = np.where((absAvgs_n_list[i] >= absAvgFilterBounds[0]) & (absAvgs_n_list[i] <= absAvgFilterBounds[1]))
+            stdFilteredIndices = np.where((stds_n_list[i] >= stdFilterBounds[0]) & (stds_n_list[i] <= stdFilterBounds[1]))
+            absStdFilteredIndices = np.where((absStds_n_list[i] >= absStdFilterBounds[0]) & (absStds_n_list[i] <= absStdFilterBounds[1]))
+            wFilteredIndices = np.where((evals_n_list[i] >= wFilterBounds[0]) & (evals_n_list[i] <= wFilterBounds[1]))
 
-        filteredIndices = np.intersect1d(np.intersect1d(avgFilteredIndices, absAvgFilteredIndices), np.intersect1d(stdFilteredIndices, absStdFilteredIndices))
+            filteredIndices = np.intersect1d(np.intersect1d(np.intersect1d(avgFilteredIndices, absAvgFilteredIndices), np.intersect1d(stdFilteredIndices, absStdFilteredIndices)), wFilteredIndices)
 
-        evals_n_list[i] = evals_n_list[i][filteredIndices]
-        avgs_n_list[i] = avgs_n_list[i][filteredIndices]
-        absAvgs_n_list[i] = absAvgs_n_list[i][filteredIndices]
-        stds_n_list[i] = stds_n_list[i][filteredIndices]
-        absStds_n_list[i] = absStds_n_list[i][filteredIndices]
+            evals_n_list[i] = evals_n_list[i][filteredIndices]
+            avgs_n_list[i] = avgs_n_list[i][filteredIndices]
+            absAvgs_n_list[i] = absAvgs_n_list[i][filteredIndices]
+            stds_n_list[i] = stds_n_list[i][filteredIndices]
+            absStds_n_list[i] = absStds_n_list[i][filteredIndices]
 
-#endregion
+    for n in range(len(klist_n)):
+        fig.add_trace(go.Scatter3d(
+            x=[klist_n[n]*np.sin(radians(thetadegs)) + kyoffset_n] * len(evals_n_list[n]),  # Repeating klist_n[n] for each eval
+            y=[klist_n[n]*np.cos(radians(thetadegs)) + kzoffset_n] * len(evals_n_list[n]),  # Repeating kzoffset_n for each eval
+            z=evals_n_list[n].real,
+            mode='markers',  # Show only markers, no lines
+            marker=dict(color='red', size=1)
+        ))
+
 
 
 def MagPlasmaEigenmodes(wp, kx, ky, kz):
@@ -125,16 +110,6 @@ def draw_surfaces(fig, wp, points, kperpmin, kperpmax, kzmin, kzmax, maxnum=4, c
 # Initialize Plotly figure
 fig = go.Figure()
 
-for n in range(len(klist_n)):
-    fig.add_trace(go.Scatter3d(
-        x=[klist_n[n]] * len(evals_n_list[n]),  # Repeating klist_n[n] for each eval
-        y=[kzoffset_n] * len(evals_n_list[n]),  # Repeating kzoffset_n for each eval
-        z=evals_n_list[n].real,
-        mode='markers',  # Show only markers, no lines
-        marker=dict(color='red', size=1)
-    ))
-        # dispScatter = axs['e'].scatter([klist_n[n] for i in evals_n_list[n]], evals_n_list[n].real, s=dotsize, 
-        #                 c=dispCmap_values[n], norm=dispCmap_norm, cmap=dispCmap)
 
 # Generate data for the surfaces
 wp1 = 0.8
@@ -144,6 +119,22 @@ kperpmax = 2
 kzmin = -2
 kzmax = 2
 maxnum = 2
+
+
+directory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/EdgeCompV3/Setups/Qin2023Linear'
+kzoffset_n = 0.9
+kyoffset_n = 0
+thetadegs = 90
+
+avgFilterBounds = [-100, 100]
+absAvgFilterBounds = [30, 70]
+stdFilterBounds = [0, 100]
+absStdFilterBounds = [0, 100]
+wFilterBounds = [0, 1]
+
+for i in range(11):
+    kzoffset_n = round(0.2*i,1)
+    plotSlicePoints(fig, directory, kzoffset_n, kyoffset_n, thetadegs, avgFilterBounds, absAvgFilterBounds, stdFilterBounds, absStdFilterBounds, wFilterBounds)
 
 # Draw surfaces for the given wp values
 draw_surfaces(fig, wp1, points, kperpmin, kperpmax, kzmin, kzmax, maxnum=maxnum, colorList=['green', 'green'])

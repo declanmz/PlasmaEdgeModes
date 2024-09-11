@@ -30,7 +30,7 @@ c = 3e8 #m/s - speed of light
 # ----- Choose File -----
 baseDirectory = 'C:/Users/decla/Documents/SPPL/PlasmaEdgeModes/EdgeCompV3/Setups'
 setupFolder = 'Qin2023Linear'
-kzoffset_n = 0.9
+kzoffset_n = 0.5
 kyoffset_n = 0
 thetadegs = 90
 
@@ -67,8 +67,8 @@ absAvgs_n_list = list(map(np.array, jsondata['absAvgs_n_list']))
 stds_n_list = list(map(np.array, jsondata['stds_n_list']))
 absStds_n_list = list(map(np.array, jsondata['absStds_n_list']))
 
-avgFilterBounds = [30, 70]
-absAvgFilterBounds = [0, L_n]
+avgFilterBounds = [-100, 100]
+absAvgFilterBounds = [0, 100]
 stdFilterBounds = [0, L_n]
 absStdFilterBounds = [0, L_n]
 
